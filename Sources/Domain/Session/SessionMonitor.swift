@@ -7,13 +7,15 @@ import Observation
 @MainActor
 @Observable
 public final class SessionMonitor {
-    /// The currently active session (nil if no session is running)
-    public private(set) var activeSession: ClaudeSession?
+    /// Every session being tracked, in the order they were first seen. Ended
+    /// sessions stay until they are pruned, so this is the whole board.
+    ///
+    /// Several Claude Code sessions run at once — two terminals in the same
+    /// directory is normal — and each is tracked separately. Views that can only
+    /// show one read `activeSession`.
+    public private(set) var sessions: [ClaudeSession] = []
 
-    /// Recently completed sessions (most recent first)
-    public private(set) var recentSessions: [ClaudeSession] = []
-
-    /// Maximum number of recent sessions to keep
+    /// Maximum number of ended sessions to keep
     private let maxRecentSessions: Int
 
     public init(maxRecentSessions: Int = 10) {
@@ -23,91 +25,116 @@ public final class SessionMonitor {
     // MARK: - Event Processing
 
     /// Processes a session event and updates state accordingly.
+    ///
+    /// Events are routed by session id. An event naming a session that was never
+    /// started is dropped: ClaudeBar may well have launched mid-session, and
+    /// inventing a session from a `Stop` would show one with no start time.
     public func processEvent(_ event: SessionEvent) {
+        // Sessions used to be cleaned up by the next SessionStart ending the
+        // previous one. Now that they coexist, something has to retire the ones
+        // that died without a SessionEnd, and an arriving event is the only tick
+        // this type has of its own.
+        pruneStale()
+
+        if event.eventName == .sessionStart {
+            handleSessionStart(event)
+            return
+        }
+
+        guard let index = sessions.firstIndex(where: { $0.id == event.sessionId }) else { return }
+        sessions[index].touch(at: event.receivedAt)
+
         switch event.eventName {
         case .sessionStart:
-            handleSessionStart(event)
+            break
         case .sessionEnd:
-            handleSessionEnd(event)
+            sessions[index].end(at: event.receivedAt)
+            trimEndedSessions()
         case .taskCompleted:
-            handleTaskCompleted(event)
+            sessions[index].taskCompleted()
         case .subagentStart:
-            handleSubagentStart(event)
+            sessions[index].subagentStarted()
         case .subagentStop:
-            handleSubagentStop(event)
+            sessions[index].subagentStopped()
         case .stop:
-            handleStop(event)
+            sessions[index].stop(at: event.receivedAt, reply: event.lastAssistantMessage)
         case .userPromptSubmit:
-            handleUserPromptSubmit(event)
+            sessions[index].resume(prompt: event.userPrompt)
         case .notification:
-            handleNotification(event)
+            guard event.blocksOnUser else { return }
+            sessions[index].awaitInput(event.message, at: event.receivedAt)
+        }
+    }
+
+    /// Drops sessions that are no longer worth showing, and ends the ones that
+    /// went quiet without saying goodbye.
+    ///
+    /// A Claude Code killed with the window sends no `SessionEnd`, so without
+    /// this its session would sit "active" forever. Call it on a timer.
+    public func pruneStale(
+        now: Date = Date(),
+        endedRetention: TimeInterval = 600,
+        idleTimeout: TimeInterval = 43_200
+    ) {
+        for index in sessions.indices where sessions[index].isActive {
+            guard now.timeIntervalSince(sessions[index].lastEventAt) >= idleTimeout else { continue }
+            sessions[index].end(at: sessions[index].lastEventAt)
+        }
+
+        sessions.removeAll { session in
+            guard let endedAt = session.endedAt else { return false }
+            return now.timeIntervalSince(endedAt) >= endedRetention
         }
     }
 
     // MARK: - Queries
 
+    /// Sessions that are still running
+    public var activeSessions: [ClaudeSession] {
+        sessions.filter(\.isActive)
+    }
+
+    /// The one running session a single-slot view should show: the one asking
+    /// hardest for the user, and the newest of those if several ask equally.
+    public var activeSession: ClaudeSession? {
+        activeSessions.max { lhs, rhs in
+            (lhs.attentionRank, lhs.startedAt) < (rhs.attentionRank, rhs.startedAt)
+        }
+    }
+
+    /// Sessions that have ended, most recently ended first
+    public var recentSessions: [ClaudeSession] {
+        sessions
+            .filter { !$0.isActive }
+            .sorted { ($0.endedAt ?? .distantPast) > ($1.endedAt ?? .distantPast) }
+    }
+
     /// Whether there's an active Claude Code session
     public var hasActiveSession: Bool {
-        activeSession != nil
+        !activeSessions.isEmpty
     }
 
-    // MARK: - Private Handlers
+    // MARK: - Private
 
     private func handleSessionStart(_ event: SessionEvent) {
-        // End any existing session before starting a new one
-        if activeSession != nil {
-            endCurrentSession(at: event.receivedAt)
+        // A resumed session reports the same id. Reviving the one already tracked
+        // keeps its task count and start time instead of showing it twice.
+        if let index = sessions.firstIndex(where: { $0.id == event.sessionId }) {
+            sessions[index].touch(at: event.receivedAt)
+            sessions[index].resume()
+            return
         }
-        activeSession = ClaudeSession(
+
+        sessions.append(ClaudeSession(
             id: event.sessionId,
             cwd: event.cwd,
-            startedAt: event.receivedAt
-        )
+            startedAt: event.receivedAt,
+            transcriptPath: event.transcriptPath
+        ))
     }
 
-    private func handleSessionEnd(_ event: SessionEvent) {
-        guard activeSession?.id == event.sessionId else { return }
-        endCurrentSession(at: event.receivedAt)
-    }
-
-    private func handleTaskCompleted(_ event: SessionEvent) {
-        guard activeSession?.id == event.sessionId else { return }
-        activeSession?.taskCompleted()
-    }
-
-    private func handleSubagentStart(_ event: SessionEvent) {
-        guard activeSession?.id == event.sessionId else { return }
-        activeSession?.subagentStarted()
-    }
-
-    private func handleSubagentStop(_ event: SessionEvent) {
-        guard activeSession?.id == event.sessionId else { return }
-        activeSession?.subagentStopped()
-    }
-
-    private func handleStop(_ event: SessionEvent) {
-        guard activeSession?.id == event.sessionId else { return }
-        activeSession?.stop()
-    }
-
-    private func handleNotification(_ event: SessionEvent) {
-        guard event.blocksOnUser else { return }
-        guard activeSession?.id == event.sessionId else { return }
-        activeSession?.awaitInput(event.message, at: event.receivedAt)
-    }
-
-    private func handleUserPromptSubmit(_ event: SessionEvent) {
-        guard activeSession?.id == event.sessionId else { return }
-        activeSession?.resume()
-    }
-
-    private func endCurrentSession(at date: Date) {
-        guard var session = activeSession else { return }
-        session.end(at: date)
-        recentSessions.insert(session, at: 0)
-        if recentSessions.count > maxRecentSessions {
-            recentSessions = Array(recentSessions.prefix(maxRecentSessions))
-        }
-        activeSession = nil
+    private func trimEndedSessions() {
+        let keep = Set(recentSessions.prefix(maxRecentSessions).map(\.id))
+        sessions.removeAll { !$0.isActive && !keep.contains($0.id) }
     }
 }

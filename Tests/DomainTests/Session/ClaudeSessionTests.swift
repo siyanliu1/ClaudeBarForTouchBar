@@ -343,4 +343,81 @@ struct ClaudeSessionTests {
         #expect(ClaudeSession.Phase.stopped.label == "Stopped")
         #expect(ClaudeSession.Phase.ended.label == "Ended")
     }
+    // MARK: - Ticker
+
+    @Test
+    func `attention rank orders the phases by how much they want the user`() {
+        var needsYou = ClaudeSession(id: "1", cwd: "/tmp")
+        needsYou.awaitInput("permission")
+        var subagents = ClaudeSession(id: "2", cwd: "/tmp")
+        subagents.subagentStarted()
+        let working = ClaudeSession(id: "3", cwd: "/tmp")
+        var stopped = ClaudeSession(id: "4", cwd: "/tmp")
+        stopped.stop()
+        var ended = ClaudeSession(id: "5", cwd: "/tmp")
+        ended.end()
+
+        let ranks = [needsYou, subagents, working, stopped, ended].map(\.attentionRank)
+
+        #expect(ranks == ranks.sorted(by: >))
+    }
+
+    @Test
+    func `a blocked session leads with what it is blocked on`() {
+        var session = ClaudeSession(id: "1", cwd: "/tmp")
+        session.resume(prompt: "run the tests")
+        session.awaitInput("Claude needs your permission to use Bash")
+
+        #expect(session.tickerText == "Needs you · Claude needs your permission to use Bash")
+    }
+
+    @Test
+    func `the prompt outranks the reply once work resumes`() {
+        var session = ClaudeSession(id: "1", cwd: "/tmp")
+        session.stop(reply: "All done.")
+        session.resume(prompt: "now add a test")
+
+        #expect(session.tickerCandidates == ["now add a test", "All done."])
+        #expect(session.tickerText == "now add a test")
+    }
+
+    @Test
+    func `a session with nothing to say falls back to its phase`() {
+        var session = ClaudeSession(id: "1", cwd: "/tmp")
+        session.taskCompleted()
+        session.taskCompleted()
+        session.stop()
+
+        #expect(session.tickerCandidates.isEmpty)
+        #expect(session.tickerText == "Turn finished · 2 tasks")
+    }
+
+    @Test
+    func `blank hook text never becomes a ticker candidate`() {
+        var session = ClaudeSession(id: "1", cwd: "/tmp")
+        session.resume(prompt: "   ")
+
+        #expect(session.tickerCandidates.isEmpty)
+    }
+
+    // MARK: - Transcript and liveness
+
+    @Test
+    func `a session remembers the transcript it was started with`() {
+        let session = ClaudeSession(id: "1", cwd: "/tmp", transcriptPath: "/tmp/1.jsonl")
+
+        #expect(session.transcriptPath == "/tmp/1.jsonl")
+    }
+
+    @Test
+    func `lastEventAt starts at the session start and moves with each touch`() {
+        let start = Date()
+        var session = ClaudeSession(id: "1", cwd: "/tmp", startedAt: start)
+
+        #expect(session.lastEventAt == start)
+
+        session.touch(at: start.addingTimeInterval(60))
+
+        #expect(session.lastEventAt == start.addingTimeInterval(60))
+    }
 }

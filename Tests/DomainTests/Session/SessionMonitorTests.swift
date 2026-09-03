@@ -73,15 +73,14 @@ struct SessionMonitorTests {
     }
 
     @Test
-    func `new SessionStart ends previous session`() {
+    func `a second SessionStart runs alongside the first`() {
         let monitor = SessionMonitor()
 
         monitor.processEvent(makeEvent(sessionId: "session-1", eventName: .sessionStart))
         monitor.processEvent(makeEvent(sessionId: "session-2", eventName: .sessionStart))
 
-        #expect(monitor.activeSession?.id == "session-2")
-        #expect(monitor.recentSessions.count == 1)
-        #expect(monitor.recentSessions.first?.id == "session-1")
+        #expect(monitor.activeSessions.count == 2)
+        #expect(monitor.recentSessions.isEmpty)
     }
 
     // MARK: - Task Tracking
@@ -336,5 +335,149 @@ struct SessionMonitorTests {
 
         #expect(monitor.activeSession?.phase == .awaitingInput)
         #expect(monitor.activeSession?.pendingPrompt == "Claude needs your permission to use Bash")
+    }
+    // MARK: - Several Sessions At Once
+
+    @Test
+    func `events reach the session they name and no other`() {
+        let monitor = SessionMonitor()
+        monitor.processEvent(makeEvent(sessionId: "s1", eventName: .sessionStart))
+        monitor.processEvent(makeEvent(sessionId: "s2", eventName: .sessionStart))
+
+        monitor.processEvent(makeEvent(sessionId: "s1", eventName: .taskCompleted))
+        monitor.processEvent(makeEvent(sessionId: "s2", eventName: .subagentStart))
+
+        let first = monitor.sessions.first { $0.id == "s1" }
+        let second = monitor.sessions.first { $0.id == "s2" }
+        #expect(first?.completedTaskCount == 1)
+        #expect(first?.phase == .active)
+        #expect(second?.completedTaskCount == 0)
+        #expect(second?.phase == .subagentsWorking)
+    }
+
+    @Test
+    func `activeSession is whichever session most wants the user`() {
+        let monitor = SessionMonitor()
+        let now = Date()
+        monitor.processEvent(makeEvent(sessionId: "working", eventName: .sessionStart, receivedAt: now))
+        monitor.processEvent(makeEvent(sessionId: "blocked", eventName: .sessionStart, receivedAt: now.addingTimeInterval(-60)))
+
+        monitor.processEvent(SessionEvent(
+            sessionId: "blocked",
+            eventName: .notification,
+            cwd: "/tmp",
+            message: "Claude needs your permission to use Bash"
+        ))
+
+        #expect(monitor.activeSession?.id == "blocked")
+    }
+
+    @Test
+    func `the newest session wins when none is more urgent than another`() {
+        let monitor = SessionMonitor()
+        let now = Date()
+        monitor.processEvent(makeEvent(sessionId: "older", eventName: .sessionStart, receivedAt: now.addingTimeInterval(-60)))
+        monitor.processEvent(makeEvent(sessionId: "newer", eventName: .sessionStart, receivedAt: now))
+
+        #expect(monitor.activeSession?.id == "newer")
+    }
+
+    @Test
+    func `SessionStart for a session already known resumes it instead of duplicating it`() {
+        let monitor = SessionMonitor()
+        monitor.processEvent(makeEvent(sessionId: "s1", eventName: .sessionStart))
+        monitor.processEvent(makeEvent(sessionId: "s1", eventName: .stop))
+
+        monitor.processEvent(makeEvent(sessionId: "s1", eventName: .sessionStart))
+
+        #expect(monitor.sessions.count == 1)
+        #expect(monitor.activeSession?.phase == .active)
+    }
+
+    // MARK: - Payload Carried Onto The Session
+
+    @Test
+    func `a session keeps the transcript path its start event carried`() {
+        let monitor = SessionMonitor()
+
+        monitor.processEvent(SessionEvent(
+            sessionId: "s1",
+            eventName: .sessionStart,
+            cwd: "/tmp",
+            transcriptPath: "/tmp/s1.jsonl"
+        ))
+
+        #expect(monitor.activeSession?.transcriptPath == "/tmp/s1.jsonl")
+    }
+
+    @Test
+    func `the prompt and the reply are recorded as they arrive`() {
+        let monitor = SessionMonitor()
+        monitor.processEvent(makeEvent(sessionId: "s1", eventName: .sessionStart))
+
+        monitor.processEvent(SessionEvent(
+            sessionId: "s1",
+            eventName: .userPromptSubmit,
+            cwd: "/tmp",
+            userPrompt: "run the tests"
+        ))
+        monitor.processEvent(SessionEvent(
+            sessionId: "s1",
+            eventName: .stop,
+            cwd: "/tmp",
+            lastAssistantMessage: "All green."
+        ))
+
+        #expect(monitor.activeSession?.lastPrompt == "run the tests")
+        #expect(monitor.activeSession?.lastReply == "All green.")
+    }
+
+    // MARK: - Pruning
+
+    @Test
+    func `pruneStale drops sessions that ended longer ago than the retention`() {
+        let monitor = SessionMonitor()
+        let now = Date()
+        monitor.processEvent(makeEvent(sessionId: "s1", eventName: .sessionStart, receivedAt: now.addingTimeInterval(-1200)))
+        monitor.processEvent(makeEvent(sessionId: "s1", eventName: .sessionEnd, receivedAt: now.addingTimeInterval(-900)))
+        monitor.processEvent(makeEvent(sessionId: "s2", eventName: .sessionStart, receivedAt: now.addingTimeInterval(-600)))
+        monitor.processEvent(makeEvent(sessionId: "s2", eventName: .sessionEnd, receivedAt: now.addingTimeInterval(-60)))
+
+        monitor.pruneStale(now: now)
+
+        #expect(monitor.sessions.map(\.id) == ["s2"])
+    }
+
+    @Test
+    func `pruneStale ends a session that was killed without a SessionEnd`() {
+        let monitor = SessionMonitor()
+        let now = Date()
+        monitor.processEvent(makeEvent(sessionId: "zombie", eventName: .sessionStart, receivedAt: now.addingTimeInterval(-50_000)))
+
+        monitor.pruneStale(now: now, endedRetention: 86_400)
+
+        #expect(monitor.activeSessions.isEmpty)
+        #expect(monitor.recentSessions.first?.id == "zombie")
+    }
+
+    @Test
+    func `pruneStale leaves a session that is merely quiet alone`() {
+        let monitor = SessionMonitor()
+        let now = Date()
+        monitor.processEvent(makeEvent(sessionId: "s1", eventName: .sessionStart, receivedAt: now.addingTimeInterval(-3600)))
+
+        monitor.pruneStale(now: now)
+
+        #expect(monitor.activeSessions.map(\.id) == ["s1"])
+    }
+    @Test
+    func `a zombie session is retired by the next event to arrive`() {
+        let monitor = SessionMonitor()
+        let longAgo = Date().addingTimeInterval(-50_000)
+        monitor.processEvent(makeEvent(sessionId: "zombie", eventName: .sessionStart, receivedAt: longAgo))
+
+        monitor.processEvent(makeEvent(sessionId: "fresh", eventName: .sessionStart))
+
+        #expect(monitor.activeSessions.map(\.id) == ["fresh"])
     }
 }
