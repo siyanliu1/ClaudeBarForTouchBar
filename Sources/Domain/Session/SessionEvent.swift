@@ -20,19 +20,65 @@ public struct SessionEvent: Sendable, Equatable, Codable {
     /// (e.g. "Claude needs your permission to use Bash").
     public let message: String?
 
+    /// The session's JSONL transcript, carried by every Claude Code hook payload.
+    /// Reading it is how live token and tool information is recovered.
+    public let transcriptPath: String?
+
+    /// What the user asked for, from `UserPromptSubmit`.
+    public let userPrompt: String?
+
+    /// Claude Code's closing message for the turn, from `Stop`.
+    public let lastAssistantMessage: String?
+
+    /// Why `Notification` fired (e.g. `agent_needs_input`, `idle_prompt`).
+    /// Only some of these mean the user is actually blocking progress; see
+    /// `blocksOnUser`.
+    public let notificationType: String?
+
     public init(
         sessionId: String,
         eventName: EventName,
         cwd: String,
         receivedAt: Date = Date(),
-        message: String? = nil
+        message: String? = nil,
+        transcriptPath: String? = nil,
+        userPrompt: String? = nil,
+        lastAssistantMessage: String? = nil,
+        notificationType: String? = nil
     ) {
         self.sessionId = sessionId
         self.eventName = eventName
         self.cwd = cwd
         self.receivedAt = receivedAt
         self.message = message
+        self.transcriptPath = transcriptPath
+        self.userPrompt = userPrompt
+        self.lastAssistantMessage = lastAssistantMessage
+        self.notificationType = notificationType
     }
+
+    /// Whether this notification means Claude Code has stopped and is waiting on
+    /// the user, rather than just telling them something.
+    ///
+    /// Claude Code sends `Notification` for plenty of things that need no answer
+    /// — going idle, finishing a login, an MCP elicitation echo. Treating those
+    /// as "Needs you" would leave the indicator permanently stuck, so only the
+    /// types that block a turn count. A payload with no type at all is treated as
+    /// blocking: older Claude Code versions omit the field, and the permission
+    /// prompt is what that hook was added for.
+    public var blocksOnUser: Bool {
+        guard eventName == .notification else { return false }
+        guard let notificationType else { return true }
+        return Self.blockingNotificationTypes.contains(notificationType)
+    }
+
+    /// Notification types that stop a turn until the user answers. Taken from the
+    /// Claude Code 2.1.223 binary; unknown types are ignored rather than guessed at.
+    static let blockingNotificationTypes: Set<String> = [
+        "permission_prompt",
+        "worker_permission_prompt",
+        "agent_needs_input",
+    ]
 
     /// Whether this event originates from ClaudeBar's own background quota probe.
     ///

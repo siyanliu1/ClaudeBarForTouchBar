@@ -21,7 +21,22 @@ public enum SessionEventParser {
         return SessionEvent(
             sessionId: sessionId,
             eventName: eventName,
-            cwd: cwd
+            cwd: cwd,
+            message: text(json["message"]),
+            transcriptPath: json["transcript_path"] as? String,
+            userPrompt: text(json["prompt"]),
+            lastAssistantMessage: text(json["last_assistant_message"]),
+            notificationType: json["notification_type"] as? String
         )
+    }
+
+    /// Free text from a hook payload, capped so a pasted novel of a prompt does
+    /// not sit in memory for the life of the session. Nothing displays more than
+    /// a line of it.
+    private static let maxTextLength = 500
+
+    private static func text(_ value: Any?) -> String? {
+        guard let string = value as? String else { return nil }
+        return String(string.prefix(maxTextLength))
     }
 }

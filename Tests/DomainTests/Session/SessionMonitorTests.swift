@@ -304,4 +304,37 @@ struct SessionMonitorTests {
         #expect(monitor.activeSession?.phase == .active)
         #expect(monitor.activeSession?.pendingPrompt == nil)
     }
+    @Test
+    func `a notification Claude Code raises for itself leaves the session working`() {
+        let monitor = SessionMonitor()
+        monitor.processEvent(SessionEvent(sessionId: "s1", eventName: .sessionStart, cwd: "/tmp"))
+
+        monitor.processEvent(SessionEvent(
+            sessionId: "s1",
+            eventName: .notification,
+            cwd: "/tmp",
+            message: "Claude is waiting for your input",
+            notificationType: "idle_prompt"
+        ))
+
+        #expect(monitor.activeSession?.phase == .active)
+        #expect(monitor.activeSession?.pendingPrompt == nil)
+    }
+
+    @Test
+    func `a permission notification moves the session to awaitingInput`() {
+        let monitor = SessionMonitor()
+        monitor.processEvent(SessionEvent(sessionId: "s1", eventName: .sessionStart, cwd: "/tmp"))
+
+        monitor.processEvent(SessionEvent(
+            sessionId: "s1",
+            eventName: .notification,
+            cwd: "/tmp",
+            message: "Claude needs your permission to use Bash",
+            notificationType: "agent_needs_input"
+        ))
+
+        #expect(monitor.activeSession?.phase == .awaitingInput)
+        #expect(monitor.activeSession?.pendingPrompt == "Claude needs your permission to use Bash")
+    }
 }
