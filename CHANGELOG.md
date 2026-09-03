@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- `TouchBarBoard` decides everything the Touch Bar will draw — which sessions get a tile and in what order, which quota goes in which cell, what the tray item shows, and what to say when there are no sessions — as a pure function of monitor state. No Touch Bar code yet; this is the model the views will read. (#1)
 - A session can now report how full its context window is and what tool it is running, read straight from Claude Code's own transcript. Reads are incremental — only the bytes appended since last time — and a half-written line is left for the next read rather than parsed in two halves. Nothing displays this yet. (#1)
 - `SessionMonitor` tracks every Claude Code session at once instead of one. Starting a second session no longer ends the first — two terminals in the same directory is normal, and both now show their own phase, task count and text. `activeSession` still answers with a single session for the menu bar and the popover: the one asking hardest for attention, newest first among equals. The notch now draws all running sessions rather than just that one. A session killed without a `SessionEnd` used to be cleaned up by the next session starting; it is now retired after 12 hours idle, and ended sessions are dropped 10 minutes after they finish. (#1)
 - A session carries the text it produced: the last prompt, the last reply, its transcript path, and a `tickerText` one-liner that leads with whatever it is blocked on. (#1)
