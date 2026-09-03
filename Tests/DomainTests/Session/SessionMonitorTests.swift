@@ -538,4 +538,37 @@ struct SessionMonitorTests {
 
         #expect(monitor.activeSession?.phase == .subagentsWorking)
     }
+
+    // MARK: - Usage
+
+    @Test
+    func `usage is written to the session it names`() {
+        let monitor = SessionMonitor()
+        monitor.processEvent(makeEvent(sessionId: "s1", eventName: .sessionStart))
+        monitor.processEvent(makeEvent(sessionId: "s2", eventName: .sessionStart))
+
+        monitor.updateUsage(sessionId: "s2", usage: SessionUsage(
+            contextTokens: 100_000,
+            contextWindow: 200_000,
+            model: "claude-opus-4-6",
+            currentTool: nil
+        ))
+
+        #expect(monitor.sessions.first { $0.id == "s1" }?.contextPercent == nil)
+        #expect(monitor.sessions.first { $0.id == "s2" }?.contextPercent == 50)
+    }
+
+    @Test
+    func `usage for a session that is gone is dropped`() {
+        let monitor = SessionMonitor()
+
+        monitor.updateUsage(sessionId: "ghost", usage: SessionUsage(
+            contextTokens: 1,
+            contextWindow: 200_000,
+            model: "claude-opus-4-6",
+            currentTool: nil
+        ))
+
+        #expect(monitor.sessions.isEmpty)
+    }
 }

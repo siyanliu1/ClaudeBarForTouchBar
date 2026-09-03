@@ -457,4 +457,73 @@ struct ClaudeSessionTests {
         #expect(session.completedTaskCount == 1)
         #expect(session.startedAt == start)
     }
+
+    // MARK: - Usage
+
+    @Test
+    func `usage arriving does not disturb what the session is doing`() {
+        var session = ClaudeSession(id: "1", cwd: "/tmp")
+        session.subagentStarted()
+
+        session.updateUsage(SessionUsage(
+            contextTokens: 40_000,
+            contextWindow: 200_000,
+            model: "claude-opus-4-6",
+            currentTool: nil
+        ))
+
+        #expect(session.phase == .subagentsWorking)
+        #expect(session.activeSubagentCount == 1)
+        #expect(session.contextPercent == 20)
+    }
+
+    @Test
+    func `context percent is nil until a transcript has been read`() {
+        let session = ClaudeSession(id: "1", cwd: "/tmp")
+
+        #expect(session.contextPercent == nil)
+    }
+
+    @Test
+    func `a working session leads with the tool it is running`() {
+        var session = ClaudeSession(id: "1", cwd: "/tmp")
+        session.resume(prompt: "run the tests")
+        session.updateUsage(SessionUsage(
+            contextTokens: 1,
+            contextWindow: 200_000,
+            model: "claude-opus-4-6",
+            currentTool: "Bash · tuist test DomainTests"
+        ))
+
+        #expect(session.tickerText == "Bash · tuist test DomainTests")
+        #expect(session.tickerCandidates == ["Bash · tuist test DomainTests", "run the tests"])
+    }
+
+    @Test
+    func `a finished turn does not claim to still be running a tool`() {
+        var session = ClaudeSession(id: "1", cwd: "/tmp")
+        session.updateUsage(SessionUsage(
+            contextTokens: 1,
+            contextWindow: 200_000,
+            model: "claude-opus-4-6",
+            currentTool: "Bash · tuist test DomainTests"
+        ))
+        session.stop(reply: "All green.")
+
+        #expect(session.tickerText == "All green.")
+    }
+
+    @Test
+    func `being blocked still outranks the tool that got blocked`() {
+        var session = ClaudeSession(id: "1", cwd: "/tmp")
+        session.updateUsage(SessionUsage(
+            contextTokens: 1,
+            contextWindow: 200_000,
+            model: "claude-opus-4-6",
+            currentTool: "Bash · rm -rf build"
+        ))
+        session.awaitInput("Claude needs your permission to use Bash")
+
+        #expect(session.tickerText == "Needs you · Claude needs your permission to use Bash")
+    }
 }
