@@ -274,6 +274,8 @@ AppLog.credentials    // Token management (redact sensitive data!)
 AppLog.ui             // SwiftUI view lifecycle
 AppLog.notifications  // System notifications
 AppLog.updates        // Sparkle updates
+AppLog.hooks          // Claude Code hook events
+AppLog.touchBar       // Touch Bar board and its private API
 ```
 
 ### Log Levels and Output
