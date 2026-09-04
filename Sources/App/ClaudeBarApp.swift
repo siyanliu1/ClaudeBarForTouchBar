@@ -6,10 +6,6 @@ import MenuBarExtraAccess
 import Sparkle
 #endif
 
-extension Notification.Name {
-    static let hookSettingsChanged = Notification.Name("com.tddworks.claudebar.hookSettingsChanged")
-}
-
 @main
 struct ClaudeBarApp: App {
     /// The main domain service - monitors all AI providers

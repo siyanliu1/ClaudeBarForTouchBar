@@ -22,6 +22,7 @@ final class TouchBarDriver {
     private var enabledSync: ObservationRenderSync<Bool>?
     private var contentSync: ObservationRenderSync<TouchBarContent>?
     private var expiryTimer: Timer?
+    private var hookSettingsObserver: (any NSObjectProtocol)?
 
     private enum Timing {
         /// Sessions expire by the clock, not by anything observable, so
@@ -120,6 +121,18 @@ final class TouchBarDriver {
         contentSync = sync
         sync.start()
 
+        // Whether hooks are on decides which of the two empty states the board
+        // shows, and it is read straight off the repository — there is no
+        // observable property to track, so nothing would invalidate the board
+        // when the user turns hooks on. HooksPane already announces it.
+        hookSettingsObserver = NotificationCenter.default.addObserver(
+            forName: .hookSettingsChanged,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in self?.contentSync?.refreshNow() }
+        }
+
         expiryTimer = Timer.scheduledTimer(
             withTimeInterval: Timing.expiryInterval,
             repeats: true
@@ -133,6 +146,10 @@ final class TouchBarDriver {
         contentSync = nil
         expiryTimer?.invalidate()
         expiryTimer = nil
+        if let hookSettingsObserver {
+            NotificationCenter.default.removeObserver(hookSettingsObserver)
+            self.hookSettingsObserver = nil
+        }
         usageSync.setPolling(false)
     }
 
