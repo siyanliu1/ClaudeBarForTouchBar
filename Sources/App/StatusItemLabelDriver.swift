@@ -502,12 +502,30 @@ final class StatusItemLabelDriver {
     /// menu-bar provider when a menu-bar readout is on; otherwise just the
     /// selected provider. Disabled providers are dropped (issue #67).
     private var backgroundRefreshProviderIds: [String]? {
-        guard settings.menuBarPercentageEnabled || settings.menuBarDurationEnabled else { return nil }
+        var ids = [monitor.selectedProviderId]
+
+        if settings.menuBarPercentageEnabled || settings.menuBarDurationEnabled {
+            ids.append(settings.menuBarPercentageProviderId)
+        }
+
+        #if ENABLE_TOUCHBAR
+        // The Touch Bar board shows Claude and Codex whatever the menu bar is
+        // showing. It cannot start a loop of its own to keep them fresh:
+        // QuotaMonitor has exactly one, and startMonitoring cancels whatever
+        // was running — which would be this one. Appended in a fixed order,
+        // because RefreshLoopKey compares the list element by element.
+        if settings.touchBarEnabled {
+            ids.append(contentsOf: ["claude", "codex"])
+        }
+        #endif
+
+        // Nothing beyond the selected provider is wanted, which is exactly what
+        // nil already means to the refresh loop.
+        guard ids.count > 1 else { return nil }
+
         let enabledProviderIds = Set(monitor.enabledProviders.map(\.id))
-        return [
-            monitor.selectedProviderId,
-            settings.menuBarPercentageProviderId,
-        ].filter { enabledProviderIds.contains($0) }
+        let wanted = ids.filter { enabledProviderIds.contains($0) }
+        return wanted.isEmpty ? nil : wanted
     }
 
     private func restartMonitoring(_ key: RefreshLoopKey) {

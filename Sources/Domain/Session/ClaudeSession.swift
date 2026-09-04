@@ -187,6 +187,13 @@ public struct ClaudeSession: Sendable, Equatable, Identifiable {
         phase != .ended
     }
 
+    /// Whether Claude Code is currently doing something for this session — as
+    /// opposed to finished, ended, or waiting on the user. Only these sessions
+    /// are worth re-reading a transcript for.
+    public var isBusy: Bool {
+        phase == .active || phase == .subagentsWorking
+    }
+
     /// Duration of the session so far
     public var duration: TimeInterval {
         let end = endedAt ?? Date()

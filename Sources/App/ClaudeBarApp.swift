@@ -28,6 +28,17 @@ struct ClaudeBarApp: App {
     /// goes down with `app.notchEnabled`; does nothing until it is turned on.
     private let notchDriver: NotchWindowDriver
 
+    /// Follows running sessions' transcripts for token counts and the tool they
+    /// are running. Not Touch Bar-specific — hook events carry no tokens, so
+    /// anything that wants a context percentage needs this.
+    private let sessionUsageSync: SessionUsageSync
+
+    #if ENABLE_TOUCHBAR
+    /// Draws the session and quota board on the Touch Bar. Comes up and goes
+    /// down with `app.touchBarEnabled`; does nothing until it is turned on.
+    private let touchBarDriver: TouchBarDriver
+    #endif
+
     /// Binding required by `.menuBarExtraAccess`; also enables programmatic
     /// dropdown control if ever needed.
     @State private var isMenuPresented = false
@@ -165,6 +176,19 @@ struct ClaudeBarApp: App {
         )
         notchDriver.startWhenLaunched()
 
+        let sessionUsageSync = SessionUsageSync(sessionMonitor: sessionMonitor)
+        self.sessionUsageSync = sessionUsageSync
+
+        #if ENABLE_TOUCHBAR
+        touchBarDriver = TouchBarDriver(
+            monitor: monitor,
+            sessionMonitor: sessionMonitor,
+            settings: AppSettings.shared,
+            usageSync: sessionUsageSync
+        )
+        touchBarDriver.startWhenLaunched()
+        #endif
+
         // Load user extensions from ~/.claudebar/extensions/
         let extensionRegistry = ExtensionRegistry(
             settingsRepository: settingsRepository,
@@ -217,6 +241,10 @@ struct ClaudeBarApp: App {
                     // notifications or pollute the recent-sessions list. (issue #172)
                     guard !event.isClaudeBarProbe else { continue }
                     await sessionMonitor.processEvent(event)
+                    // An event is the cheapest possible cue that a transcript
+                    // has grown: no polling, and it costs nothing while nothing
+                    // is happening.
+                    await sessionUsageSync.sessionDidChange(event.sessionId)
                     await sendSessionNotification(for: event)
                 }
             } catch {

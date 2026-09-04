@@ -53,6 +53,32 @@ struct GeneralPane: View {
                 ) {
                     SettingsSwitch(isOn: $settings.notchEnabled)
                 }
+
+                #if ENABLE_TOUCHBAR
+                SettingsRowDivider()
+
+                SettingsRow(
+                    title: "Touch Bar Board",
+                    subtitle: "Put a session and quota board in the Control Strip. Macs without a Touch Bar are unaffected."
+                ) {
+                    SettingsSwitch(isOn: $settings.touchBarEnabled)
+                }
+
+                if settings.touchBarEnabled {
+                    SettingsRowDivider()
+
+                    SettingsRow(
+                        title: "Board Width",
+                        subtitle: "Wide fills the Touch Bar and hides the Control Strip. The board's own button switches this too."
+                    ) {
+                        SettingsSegmentedControl(
+                            options: TouchBarLayout.allCases,
+                            label: { $0.displayLabel },
+                            selection: $settings.touchBarLayout
+                        )
+                    }
+                }
+                #endif
             }
 
             SettingsCard {
