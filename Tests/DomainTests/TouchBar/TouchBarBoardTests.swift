@@ -263,4 +263,21 @@ struct TouchBarBoardTests {
         #expect(build(sessions: sessions, snapshots: snapshots)
             == build(sessions: sessions, snapshots: snapshots))
     }
+    // MARK: - Empty Value
+
+    @Test
+    func `the empty board has a cell for every number it will ever show`() {
+        #expect(TouchBarBoard.empty.claude.count == 3)
+        #expect(TouchBarBoard.empty.codex.count == 2)
+        #expect(TouchBarBoard.empty.claude.allSatisfy { $0.percent == nil })
+    }
+
+    @Test
+    func `the empty board makes no claim about sessions`() {
+        // "No sessions" would be a statement; before the first read there is
+        // simply nothing known.
+        #expect(TouchBarBoard.empty.tiles.isEmpty)
+        #expect(TouchBarBoard.empty.emptyMessage == nil)
+        #expect(TouchBarBoard.empty.tray.phase == nil)
+    }
 }

@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- The Touch Bar state machine: a tray item in the Control Strip that expands into the board, a toggle between the compact and wide shapes, and a close that works in both. It notices when the board goes away without being asked — the system close box, another app taking the bar, the display sleeping — and re-asserts the tray item after the Mac wakes, which can otherwise evict it silently. (#1)
 - The Touch Bar board's views: a 104 × 26 pt tile per session with a phase-coloured bar, repository name, context percentage and one line of text; the two quota lines with every number coloured by its own status; the `NSScrubber` that scrolls the tiles; and the board that assembles them at either width. Text is static for now — the marquee and the rotation between candidate lines come next. (#1)
 - The private Touch Bar interface is wrapped in one file behind a new `ENABLE_TOUCHBAR` compilation condition, with a `touchBar` log category for it. Every symbol is resolved at runtime, so a macOS that has dropped one leaves the feature switched off instead of refusing to launch. Mac App Store builds blank the compilation conditions and drop the whole thing. (#1)
 - Two settings for the Touch Bar board — whether it is shown (`app.touchBarEnabled`, default off) and which shape it was last left in (`app.touchBarLayout`, compact or wide). Nothing reads them yet; the board's own toggle button will write the second one. (#1)

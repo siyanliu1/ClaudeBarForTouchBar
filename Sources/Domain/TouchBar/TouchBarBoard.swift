@@ -89,6 +89,18 @@ public struct TouchBarBoard: Sendable, Equatable {
     /// How long a finished session stays on the board.
     public static let endedRetention: TimeInterval = 600
 
+    /// The board before anything has been read: no sessions, no numbers, and
+    /// nothing to say about it either — an empty-state message would be a claim
+    /// that there are no sessions, which is not yet known.
+    public static let empty = TouchBarBoard(
+        tiles: [],
+        claude: claudeQuotaKeys.map { _ in .missing },
+        codex: codexQuotaKeys.map { _ in .missing },
+        tray: Tray(phase: nil, quota: .missing),
+        isRefreshing: false,
+        emptyMessage: nil
+    )
+
     static let claudeQuotaKeys = ["session", "weekly", "model:fable"]
     static let codexQuotaKeys = ["session", "weekly"]
 
