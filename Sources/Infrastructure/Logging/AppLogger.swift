@@ -68,6 +68,11 @@ public enum AppLog {
 
     /// Logger for hook operations (Claude Code session tracking)
     public static let hooks = CategoryLogger(category: "hooks")
+
+    /// Logger for the Touch Bar board. Its own category because its failures
+    /// are private-API failures, which look like nothing at all from the
+    /// outside: the bar simply never appears.
+    public static let touchBar = CategoryLogger(category: "touchBar")
     
     /// Open the logs directory in Finder
     public static func openLogsDirectory() {

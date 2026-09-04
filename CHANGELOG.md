@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- The private Touch Bar interface is wrapped in one file behind a new `ENABLE_TOUCHBAR` compilation condition, with a `touchBar` log category for it. Every symbol is resolved at runtime, so a macOS that has dropped one leaves the feature switched off instead of refusing to launch. Mac App Store builds blank the compilation conditions and drop the whole thing. (#1)
 - Two settings for the Touch Bar board — whether it is shown (`app.touchBarEnabled`, default off) and which shape it was last left in (`app.touchBarLayout`, compact or wide). Nothing reads them yet; the board's own toggle button will write the second one. (#1)
 - `TouchBarBoard` decides everything the Touch Bar will draw — which sessions get a tile and in what order, which quota goes in which cell, what the tray item shows, and what to say when there are no sessions — as a pure function of monitor state. No Touch Bar code yet; this is the model the views will read. (#1)
 - A session can now report how full its context window is and what tool it is running, read straight from Claude Code's own transcript. Reads are incremental — only the bytes appended since last time — and a half-written line is left for the next read rather than parsed in two halves. Nothing displays this yet. (#1)

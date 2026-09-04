@@ -96,10 +96,14 @@ let project = Project(
                     "ASSETCATALOG_COMPILER_APPICON_NAME": "AppIcon",
                 ],
                 debug: [
-                    "SWIFT_ACTIVE_COMPILATION_CONDITIONS": "DEBUG ENABLE_SPARKLE",
+                    // ENABLE_TOUCHBAR gates every use of the private Touch Bar
+                    // interface. The Mac App Store workflow blanks these
+                    // conditions, so those builds drop the feature and stay
+                    // clear of App Review 2.5.1.
+                    "SWIFT_ACTIVE_COMPILATION_CONDITIONS": "DEBUG ENABLE_SPARKLE ENABLE_TOUCHBAR",
                 ],
                 release: [
-                    "SWIFT_ACTIVE_COMPILATION_CONDITIONS": "ENABLE_SPARKLE",
+                    "SWIFT_ACTIVE_COMPILATION_CONDITIONS": "ENABLE_SPARKLE ENABLE_TOUCHBAR",
                 ]
             )
         ),
