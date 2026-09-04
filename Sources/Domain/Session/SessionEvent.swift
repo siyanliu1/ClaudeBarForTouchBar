@@ -78,6 +78,10 @@ public struct SessionEvent: Sendable, Equatable, Codable {
         "permission_prompt",
         "worker_permission_prompt",
         "agent_needs_input",
+        // An MCP server's elicitation blocks the turn exactly as a permission
+        // prompt does; in the binary all three come from the same helper.
+        "elicitation_dialog",
+        "elicitation_url_dialog",
     ]
 
     /// Whether this event originates from ClaudeBar's own background quota probe.

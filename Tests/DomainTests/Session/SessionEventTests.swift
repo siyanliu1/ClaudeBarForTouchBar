@@ -175,4 +175,41 @@ struct SessionEventTests {
         #expect(decoded.sessionId == "s")
         #expect(decoded.transcriptPath == nil)
     }
+    @Test
+    func `an MCP elicitation blocks the turn just as a permission prompt does`() {
+        for type in ["permission_prompt", "worker_permission_prompt", "agent_needs_input",
+                     "elicitation_dialog", "elicitation_url_dialog"] {
+            let event = SessionEvent(
+                sessionId: "s",
+                eventName: .notification,
+                cwd: "/tmp",
+                notificationType: type
+            )
+
+            #expect(event.blocksOnUser, "\(type) should block")
+        }
+    }
+
+    @Test
+    func `a notification Claude Code raises for itself blocks nothing`() {
+        for type in ["idle_prompt", "auth_success", "agent_completed", "push_notification",
+                     "elicitation_complete", "elicitation_response",
+                     "computer_use_enter", "computer_use_exit"] {
+            let event = SessionEvent(
+                sessionId: "s",
+                eventName: .notification,
+                cwd: "/tmp",
+                notificationType: type
+            )
+
+            #expect(event.blocksOnUser == false, "\(type) should not block")
+        }
+    }
+
+    @Test
+    func `only a notification can block on the user`() {
+        let event = SessionEvent(sessionId: "s", eventName: .stop, cwd: "/tmp")
+
+        #expect(event.blocksOnUser == false)
+    }
 }
