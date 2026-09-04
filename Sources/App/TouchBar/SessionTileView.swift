@@ -28,7 +28,6 @@ final class SessionTileView: NSScrubberItemView {
         /// Enough for about nine characters, which is where repository names
         /// start to collide with the percentage pinned to the right.
         static let nameWidth: CGFloat = 60
-        static let lineSpacing: CGFloat = 1
     }
 
     override init(frame frameRect: NSRect) {
@@ -105,7 +104,12 @@ final class SessionTileView: NSScrubberItemView {
                 equalTo: phaseBar.trailingAnchor,
                 constant: Metrics.padding
             ),
-            nameLabel.topAnchor.constraint(equalTo: topAnchor, constant: Metrics.padding / 2),
+            // The two lines are 14 pt and 12 pt at these font sizes, which is
+            // exactly the 26 pt tile. There is no room for a top inset or a gap
+            // between them: the tile clips to its bounds, so anything that does
+            // not fit is sliced off the descenders of line two rather than
+            // overflowing visibly.
+            nameLabel.topAnchor.constraint(equalTo: topAnchor),
             nameLabel.widthAnchor.constraint(lessThanOrEqualToConstant: Metrics.nameWidth),
 
             contextLabel.leadingAnchor.constraint(
@@ -123,10 +127,8 @@ final class SessionTileView: NSScrubberItemView {
                 equalTo: trailingAnchor,
                 constant: -Metrics.padding
             ),
-            detailLabel.topAnchor.constraint(
-                equalTo: nameLabel.bottomAnchor,
-                constant: Metrics.lineSpacing
-            ),
+            detailLabel.topAnchor.constraint(equalTo: nameLabel.bottomAnchor),
+            detailLabel.bottomAnchor.constraint(lessThanOrEqualTo: bottomAnchor),
         ])
     }
 }

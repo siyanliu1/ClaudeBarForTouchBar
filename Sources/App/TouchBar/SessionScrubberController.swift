@@ -16,6 +16,11 @@ final class SessionScrubberController: NSObject, NSScrubberDataSource, NSScrubbe
     /// When the user last touched the strip. Yanking the view somewhere else
     /// mid-scroll is the rudest thing this could do, so auto-scroll waits.
     private var lastInteractionAt: Date?
+    /// The session the strip was last pulled to the front for. A session stays
+    /// blocked for as long as the user ignores it, and content updates keep
+    /// arriving — without this, every context percentage tick would drag the
+    /// strip back to the front while they were reading another tile.
+    private var scrolledToAttentionFor: String?
 
     private enum Timing {
         /// How long after a scroll the board leaves the user's position alone.
@@ -108,12 +113,18 @@ final class SessionScrubberController: NSObject, NSScrubberDataSource, NSScrubbe
     }
 
     /// Pulls a session that needs the user to the left edge, where the eye
-    /// lands first — unless the user is scrolling, in which case it waits.
+    /// lands first. Once, when it takes the lead — not on every repaint for as
+    /// long as it stays there — and never while the user is scrolling.
     private func scrollToAttentionIfWanted(now: Date) {
-        guard tiles.first?.isAttention == true else { return }
+        guard let lead = tiles.first, lead.isAttention else {
+            scrolledToAttentionFor = nil
+            return
+        }
+        guard lead.id != scrolledToAttentionFor else { return }
         if let lastInteractionAt, now.timeIntervalSince(lastInteractionAt) < Timing.interactionGrace {
             return
         }
+        scrolledToAttentionFor = lead.id
         scrubber.scrollItem(at: 0, to: .leading)
     }
 }
