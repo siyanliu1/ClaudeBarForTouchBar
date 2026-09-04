@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- The Touch Bar board's views: a 104 × 26 pt tile per session with a phase-coloured bar, repository name, context percentage and one line of text; the two quota lines with every number coloured by its own status; the `NSScrubber` that scrolls the tiles; and the board that assembles them at either width. Text is static for now — the marquee and the rotation between candidate lines come next. (#1)
 - The private Touch Bar interface is wrapped in one file behind a new `ENABLE_TOUCHBAR` compilation condition, with a `touchBar` log category for it. Every symbol is resolved at runtime, so a macOS that has dropped one leaves the feature switched off instead of refusing to launch. Mac App Store builds blank the compilation conditions and drop the whole thing. (#1)
 - Two settings for the Touch Bar board — whether it is shown (`app.touchBarEnabled`, default off) and which shape it was last left in (`app.touchBarLayout`, compact or wide). Nothing reads them yet; the board's own toggle button will write the second one. (#1)
 - `TouchBarBoard` decides everything the Touch Bar will draw — which sessions get a tile and in what order, which quota goes in which cell, what the tray item shows, and what to say when there are no sessions — as a pure function of monitor state. No Touch Bar code yet; this is the model the views will read. (#1)
