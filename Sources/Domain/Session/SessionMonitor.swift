@@ -77,6 +77,16 @@ public final class SessionMonitor {
     /// dropped: a session that ended while its transcript was being read is gone.
     public func updateUsage(sessionId: String, usage: SessionUsage) {
         guard let index = sessions.firstIndex(where: { $0.id == sessionId }) else { return }
+
+        // Granting a permission fires no hook — PreToolUse is deliberately not
+        // registered — so a session that was blocked would stay blocked in the
+        // UI until the turn ended. The transcript growing is the answer: more
+        // context than last time means Claude is working again.
+        if sessions[index].phase == .awaitingInput,
+           usage.contextTokens > (sessions[index].usage?.contextTokens ?? 0) {
+            sessions[index].resume()
+        }
+
         sessions[index].updateUsage(usage)
     }
 

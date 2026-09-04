@@ -571,4 +571,53 @@ struct SessionMonitorTests {
 
         #expect(monitor.sessions.isEmpty)
     }
+    @Test
+    func `a blocked session goes back to work when its transcript grows`() {
+        // Granting a permission fires no hook, so the transcript is the only
+        // evidence the user answered.
+        let monitor = SessionMonitor()
+        monitor.processEvent(makeEvent(sessionId: "s1", eventName: .sessionStart))
+        monitor.updateUsage(sessionId: "s1", usage: usage(contextTokens: 40_000))
+        monitor.processEvent(SessionEvent(
+            sessionId: "s1",
+            eventName: .notification,
+            cwd: "/tmp",
+            message: "Claude needs your permission to use Bash",
+            notificationType: "permission_prompt"
+        ))
+        #expect(monitor.activeSession?.phase == .awaitingInput)
+
+        monitor.updateUsage(sessionId: "s1", usage: usage(contextTokens: 41_000))
+
+        #expect(monitor.activeSession?.phase == .active)
+        #expect(monitor.activeSession?.pendingPrompt == nil)
+    }
+
+    @Test
+    func `a blocked session stays blocked while its transcript does not grow`() {
+        let monitor = SessionMonitor()
+        monitor.processEvent(makeEvent(sessionId: "s1", eventName: .sessionStart))
+        monitor.updateUsage(sessionId: "s1", usage: usage(contextTokens: 40_000))
+        monitor.processEvent(SessionEvent(
+            sessionId: "s1",
+            eventName: .notification,
+            cwd: "/tmp",
+            message: "Claude needs your permission to use Bash",
+            notificationType: "permission_prompt"
+        ))
+
+        // The same reading arriving again is not evidence of anything.
+        monitor.updateUsage(sessionId: "s1", usage: usage(contextTokens: 40_000))
+
+        #expect(monitor.activeSession?.phase == .awaitingInput)
+    }
+
+    private func usage(contextTokens: Int) -> SessionUsage {
+        SessionUsage(
+            contextTokens: contextTokens,
+            contextWindow: 200_000,
+            model: "claude-opus-4-6",
+            currentTool: nil
+        )
+    }
 }

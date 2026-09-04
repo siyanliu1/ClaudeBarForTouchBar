@@ -187,6 +187,18 @@ public struct ClaudeSession: Sendable, Equatable, Identifiable {
         phase != .ended
     }
 
+    /// Whether this session's transcript is worth re-reading: Claude Code is
+    /// working, or is blocked on the user and about to be.
+    ///
+    /// A blocked session counts because nothing in the hook stream fires when a
+    /// permission is granted — `PreToolUse` is deliberately not registered — so
+    /// the transcript growing again is the only signal that the user answered.
+    /// Stop reading it and the session would sit on "Needs you" at a frozen
+    /// percentage for the rest of the turn.
+    public var isBusy: Bool {
+        phase == .active || phase == .subagentsWorking || phase == .awaitingInput
+    }
+
     /// Duration of the session so far
     public var duration: TimeInterval {
         let end = endedAt ?? Date()
