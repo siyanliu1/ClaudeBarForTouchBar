@@ -146,6 +146,22 @@ public final class JSONSettingsRepository:
         store.write(value: enabled, key: "app.notchEnabled")
     }
 
+    public func touchBarEnabled() -> Bool {
+        store.read(key: "app.touchBarEnabled") ?? false
+    }
+
+    public func setTouchBarEnabled(_ enabled: Bool) {
+        store.write(value: enabled, key: "app.touchBarEnabled")
+    }
+
+    public func touchBarLayout() -> String {
+        store.read(key: "app.touchBarLayout") ?? "compact"
+    }
+
+    public func setTouchBarLayout(_ layout: String) {
+        store.write(value: layout, key: "app.touchBarLayout")
+    }
+
     public func overviewModeEnabled() -> Bool {
         store.read(key: "app.overviewModeEnabled") ?? false
     }

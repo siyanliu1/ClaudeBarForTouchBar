@@ -51,6 +51,17 @@ public protocol AppSettingsRepository: Sendable {
     func notchEnabled() -> Bool
     func setNotchEnabled(_ enabled: Bool)
 
+    // MARK: - Touch Bar
+
+    /// Whether the Touch Bar board is shown (default: false).
+    func touchBarEnabled() -> Bool
+    func setTouchBarEnabled(_ enabled: Bool)
+
+    /// The board shape last chosen, as a `TouchBarLayout` raw value
+    /// (default: "compact").
+    func touchBarLayout() -> String
+    func setTouchBarLayout(_ layout: String)
+
     // MARK: - Overview
 
     func overviewModeEnabled() -> Bool

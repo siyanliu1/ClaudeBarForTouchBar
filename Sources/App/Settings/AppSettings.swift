@@ -117,6 +117,24 @@ public final class AppSettings {
         }
     }
 
+    // MARK: - Touch Bar Settings
+
+    /// Whether the Touch Bar board is shown (default: false).
+    public var touchBarEnabled: Bool {
+        didSet {
+            repository.setTouchBarEnabled(touchBarEnabled)
+        }
+    }
+
+    /// The board shape the user last left the Touch Bar in. Written by the
+    /// board's own toggle button, not only by Settings, so that reopening the
+    /// bar brings back the shape they were using.
+    public var touchBarLayout: TouchBarLayout {
+        didSet {
+            repository.setTouchBarLayout(touchBarLayout.rawValue)
+        }
+    }
+
     // MARK: - Overview Mode Settings
 
     /// Whether to show all enabled providers at once instead of one at a time
@@ -243,6 +261,10 @@ public final class AppSettings {
         self.burnRateThreshold = repository.burnRateThreshold()
         self.showDailyUsageCards = repository.showDailyUsageCards()
         self.notchEnabled = repository.notchEnabled()
+        self.touchBarEnabled = repository.touchBarEnabled()
+        // Decoded through the Domain fallback so a layout written by a newer
+        // build opens compact instead of failing to open at all.
+        self.touchBarLayout = TouchBarLayout(storedRawValue: repository.touchBarLayout())
         self.overviewModeEnabled = repository.overviewModeEnabled()
         self.backgroundSyncEnabled = repository.backgroundSyncEnabled()
         self.backgroundSyncInterval = repository.backgroundSyncInterval()
