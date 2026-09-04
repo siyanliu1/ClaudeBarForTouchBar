@@ -73,6 +73,13 @@ public final class SessionMonitor {
         }
     }
 
+    /// Records what the transcript reader found for one session. Unknown ids are
+    /// dropped: a session that ended while its transcript was being read is gone.
+    public func updateUsage(sessionId: String, usage: SessionUsage) {
+        guard let index = sessions.firstIndex(where: { $0.id == sessionId }) else { return }
+        sessions[index].updateUsage(usage)
+    }
+
     /// Drops sessions that are no longer worth showing, and ends the ones that
     /// went quiet without saying goodbye.
     ///

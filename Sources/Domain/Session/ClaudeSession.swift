@@ -35,6 +35,9 @@ public struct ClaudeSession: Sendable, Equatable, Identifiable {
     /// How Claude Code closed the last turn, from `Stop`.
     public private(set) var lastReply: String?
 
+    /// What the transcript says about the current turn, once it has been read.
+    public private(set) var usage: SessionUsage?
+
     public init(
         id: String,
         cwd: String,
@@ -151,6 +154,13 @@ public struct ClaudeSession: Sendable, Equatable, Identifiable {
         endedAt = date
     }
 
+    /// Records what the transcript reader found. Says nothing about the phase:
+    /// reading a file is not activity, and a session that stopped mid-read must
+    /// not be dragged back to working by its own token count arriving late.
+    public mutating func updateUsage(_ usage: SessionUsage) {
+        self.usage = usage
+    }
+
     /// Records that the session is still alive, whatever the event was.
     public mutating func touch(at date: Date) {
         lastEventAt = date
@@ -219,9 +229,17 @@ public struct ClaudeSession: Sendable, Equatable, Identifiable {
         if phase == .awaitingInput, let pendingPrompt {
             candidates.append("Needs you · \(pendingPrompt)")
         }
+        if isWorking, let currentTool = usage?.currentTool {
+            candidates.append(currentTool)
+        }
         if let lastPrompt { candidates.append(lastPrompt) }
         if let lastReply { candidates.append(lastReply) }
         return candidates.filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+    }
+
+    /// How full the context window is, once a transcript has been read.
+    public var contextPercent: Double? {
+        usage?.contextPercent
     }
 
     /// One line describing the session. Falls back to the phase when the session
@@ -231,6 +249,12 @@ public struct ClaudeSession: Sendable, Equatable, Identifiable {
     }
 
     // MARK: - Private
+
+    /// Whether a tool named in the transcript is plausibly still running. A
+    /// stopped session's last tool finished with the turn.
+    private var isWorking: Bool {
+        phase == .active || phase == .subagentsWorking
+    }
 
     private var phaseText: String {
         switch phase {
