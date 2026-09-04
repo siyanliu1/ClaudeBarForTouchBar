@@ -147,19 +147,27 @@ final class TouchBarController {
     func toggle() {
         guard case .presented(let layout) = state else { return }
         let next = layout.toggled
+        represent(next)
+        onLayoutChange?(next)
+    }
+
+    /// Takes the bar down and puts it back at the other placement, which is the
+    /// only way to change it. `onVisibilityChange` is deliberately not fired
+    /// for the gap: nothing stops, the board is simply a different shape.
+    private func represent(_ layout: TouchBarLayout) {
         if let touchBar {
             TouchBarPrivateAPI.dismissSystemModal(touchBar)
         }
+        visibilityTimer?.invalidate()
+        visibilityTimer = nil
         state = .collapsed
-        present(next)
-        onLayoutChange?(next)
+        present(layout)
     }
 
     // MARK: - Content
 
     func update(_ newContent: TouchBarContent) {
         guard newContent != content else { return }
-        let layoutChanged = newContent.layout != content.layout
         content = newContent
         palette = TouchBarPalette.resolve(themeModeId: newContent.themeModeId)
 
@@ -168,9 +176,20 @@ final class TouchBarController {
         // While collapsed there is no board to draw into; it is rebuilt from
         // `content` the moment it is presented.
         guard case .presented(let presentedLayout) = state else { return }
+
+        // The layout can change from outside the board — the picker in Settings
+        // writes the same setting the toggle button does. Redrawing at the new
+        // width would leave the view wider or narrower than the region the bar
+        // was actually presented into, because `placement` is fixed at
+        // presentation time. Re-presenting is the only way to change it.
+        if newContent.layout != presentedLayout {
+            represent(newContent.layout)
+            return
+        }
+
         boardView?.update(
             board: newContent.board,
-            layout: layoutChanged ? newContent.layout : presentedLayout,
+            layout: presentedLayout,
             palette: palette,
             now: Date()
         )
