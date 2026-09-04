@@ -335,4 +335,55 @@ struct JSONSettingsRepositoryAppTests {
         #expect(repo2.menuBarPercentageProviderId() == "codex")
         #expect(repo2.menuBarPercentageQuotaKey() == "model:gpt-5")
     }
+    // MARK: - Touch Bar
+
+    @Test
+    func `touchBarEnabled defaults to false`() {
+        let (repo, dir) = makeRepository()
+        defer { cleanup(dir) }
+
+        #expect(repo.touchBarEnabled() == false)
+    }
+
+    @Test
+    func `setTouchBarEnabled persists value`() {
+        let (repo, dir) = makeRepository()
+        defer { cleanup(dir) }
+
+        repo.setTouchBarEnabled(true)
+
+        #expect(repo.touchBarEnabled())
+    }
+
+    @Test
+    func `touchBarLayout defaults to compact`() {
+        let (repo, dir) = makeRepository()
+        defer { cleanup(dir) }
+
+        #expect(repo.touchBarLayout() == "compact")
+    }
+
+    @Test
+    func `setTouchBarLayout persists across repository instances`() {
+        let tempDir = FileManager.default.temporaryDirectory
+            .appendingPathComponent("claudebar-test-\(UUID().uuidString)")
+        let fileURL = tempDir.appendingPathComponent("settings.json")
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+
+        let store = JSONSettingsStore(fileURL: fileURL)
+        JSONSettingsRepository(store: store).setTouchBarLayout("wide")
+
+        #expect(JSONSettingsRepository(store: store).touchBarLayout() == "wide")
+    }
+
+    @Test
+    func `a touch bar layout of the wrong type reads back as the default`() {
+        let (repo, dir) = makeRepository()
+        defer { cleanup(dir) }
+
+        // JSONSettingsStore casts with `as? T`, so a key holding a Bool where a
+        // String belongs must fall through to the default rather than crash.
+        repo.setTouchBarEnabled(true)
+        #expect(repo.touchBarLayout() == "compact")
+    }
 }
