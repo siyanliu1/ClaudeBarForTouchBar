@@ -20,14 +20,32 @@ public struct ClaudeSession: Sendable, Equatable, Identifiable {
     /// (e.g. "Claude needs your permission to use Bash"). Cleared when work resumes.
     public private(set) var pendingPrompt: String?
 
+    /// The session's JSONL transcript, from the hook payload. Reading it is how
+    /// token counts and the running tool are recovered.
+    public let transcriptPath: String?
+
+    /// When this session last produced any hook event. A session killed without
+    /// a `SessionEnd` goes quiet here and nowhere else, so this is what says it
+    /// is gone.
+    public private(set) var lastEventAt: Date
+
+    /// The last thing the user asked for, from `UserPromptSubmit`.
+    public private(set) var lastPrompt: String?
+
+    /// How Claude Code closed the last turn, from `Stop`.
+    public private(set) var lastReply: String?
+
     public init(
         id: String,
         cwd: String,
-        startedAt: Date = Date()
+        startedAt: Date = Date(),
+        transcriptPath: String? = nil
     ) {
         self.id = id
         self.cwd = cwd
         self.startedAt = startedAt
+        self.transcriptPath = transcriptPath
+        self.lastEventAt = startedAt
         self.phase = .active
         self.activeSubagentCount = 0
         self.completedTaskCount = 0
@@ -69,15 +87,36 @@ public struct ClaudeSession: Sendable, Equatable, Identifiable {
     public mutating func subagentStopped() {
         guard phase != .ended else { return }
         activeSubagentCount = max(0, activeSubagentCount - 1)
+        // Only a session that was showing its subagents re-derives its phase
+        // here. A session blocked on the user still is when a subagent reports
+        // back — recomputing would call it active and throw away the prompt
+        // nobody has answered yet.
+        guard phase == .subagentsWorking else { return }
         updatePhase()
     }
 
     /// Revives a stopped/idle session when a new turn begins (UserPromptSubmit).
     /// `Stop` fires at the end of every turn, so without this a session would be
     /// stuck `.stopped` for the rest of its life. No-op once ended.
-    public mutating func resume() {
+    public mutating func resume(prompt: String? = nil) {
         guard phase != .ended else { return }
+        if let prompt { lastPrompt = prompt }
         updatePhase()
+    }
+
+    /// Brings an ended session back, keeping the history it accumulated.
+    ///
+    /// `claude --resume` reports the same session id, so this is the same
+    /// session continuing rather than a new one: its start time and task count
+    /// are still true. `resume()` cannot do this — it refuses to touch an ended
+    /// session, which is what makes it safe to call on every prompt.
+    public mutating func revive(at date: Date = Date()) {
+        endedAt = nil
+        stoppedAt = nil
+        pendingPrompt = nil
+        activeSubagentCount = 0
+        phase = .active
+        lastEventAt = date
     }
 
     /// Records that Claude Code is blocked waiting on the user, carrying the
@@ -96,8 +135,9 @@ public struct ClaudeSession: Sendable, Equatable, Identifiable {
     }
 
     /// Marks the session as stopped (Claude Code stopped responding)
-    public mutating func stop(at date: Date = Date()) {
+    public mutating func stop(at date: Date = Date(), reply: String? = nil) {
         guard phase != .ended else { return }
+        if let reply { lastReply = reply }
         phase = .stopped
         activeSubagentCount = 0
         stoppedAt = date
@@ -109,6 +149,11 @@ public struct ClaudeSession: Sendable, Equatable, Identifiable {
         phase = .ended
         activeSubagentCount = 0
         endedAt = date
+    }
+
+    /// Records that the session is still alive, whatever the event was.
+    public mutating func touch(at date: Date) {
+        lastEventAt = date
     }
 
     /// When this session last finished doing something — the end of the session
@@ -154,7 +199,51 @@ public struct ClaudeSession: Sendable, Equatable, Identifiable {
         }
     }
 
+    /// How loudly this session is asking for the user, highest first. Used to
+    /// pick the one session the menu bar can show, and to sort the Touch Bar.
+    public var attentionRank: Int {
+        switch phase {
+        case .awaitingInput: return 4
+        case .subagentsWorking: return 3
+        case .active: return 2
+        case .stopped: return 1
+        case .ended: return 0
+        }
+    }
+
+    /// What this session has to say, most interesting first. A display that can
+    /// only show one line takes the first; one that rotates takes them in order.
+    /// Empty when the session has produced no text of its own yet.
+    public var tickerCandidates: [String] {
+        var candidates: [String] = []
+        if phase == .awaitingInput, let pendingPrompt {
+            candidates.append("Needs you · \(pendingPrompt)")
+        }
+        if let lastPrompt { candidates.append(lastPrompt) }
+        if let lastReply { candidates.append(lastReply) }
+        return candidates.filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+    }
+
+    /// One line describing the session. Falls back to the phase when the session
+    /// has said nothing yet — a brand new session has no prompt and no reply.
+    public var tickerText: String {
+        tickerCandidates.first ?? phaseText
+    }
+
     // MARK: - Private
+
+    private var phaseText: String {
+        switch phase {
+        case .stopped where completedTaskCount > 0:
+            return "Turn finished · \(completedTaskCount) task\(completedTaskCount == 1 ? "" : "s")"
+        case .stopped:
+            return "Turn finished"
+        case .ended:
+            return "Ended · \(durationDescription)"
+        default:
+            return phase.label
+        }
+    }
 
     private mutating func updatePhase() {
         pendingPrompt = nil
