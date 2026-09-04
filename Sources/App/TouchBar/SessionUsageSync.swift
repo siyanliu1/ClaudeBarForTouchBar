@@ -40,6 +40,11 @@ final class SessionUsageSync {
     /// Reads one session now. Called when a hook event says something happened,
     /// which is the cheapest possible trigger — no polling, no guessing.
     func sessionDidChange(_ sessionId: String) {
+        // Pruning belongs here rather than only in the tick: events arrive
+        // whatever the board is doing, and the tick only runs while it is on
+        // screen — so with the board closed, which is most of the time, nothing
+        // would ever release a finished session's read position.
+        forgetSessionsNotIn(Set(sessionMonitor.sessions.map(\.id)))
         guard let session = sessionMonitor.sessions.first(where: { $0.id == sessionId }) else { return }
         read(session)
     }

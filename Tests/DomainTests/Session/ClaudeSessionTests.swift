@@ -526,4 +526,24 @@ struct ClaudeSessionTests {
 
         #expect(session.tickerText == "Needs you · Claude needs your permission to use Bash")
     }
+    @Test
+    func `a session blocked on the user is still worth reading the transcript of`() {
+        // Nothing in the hook stream fires when a permission is granted, so the
+        // transcript is the only way back.
+        var blocked = ClaudeSession(id: "1", cwd: "/tmp")
+        blocked.awaitInput("permission")
+        let working = ClaudeSession(id: "2", cwd: "/tmp")
+        var agents = ClaudeSession(id: "3", cwd: "/tmp")
+        agents.subagentStarted()
+        var finished = ClaudeSession(id: "4", cwd: "/tmp")
+        finished.stop()
+        var ended = ClaudeSession(id: "5", cwd: "/tmp")
+        ended.end()
+
+        #expect(blocked.isBusy)
+        #expect(working.isBusy)
+        #expect(agents.isBusy)
+        #expect(finished.isBusy == false)
+        #expect(ended.isBusy == false)
+    }
 }
