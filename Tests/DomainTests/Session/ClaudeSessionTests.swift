@@ -420,4 +420,41 @@ struct ClaudeSessionTests {
 
         #expect(session.lastEventAt == start.addingTimeInterval(60))
     }
+    @Test
+    func `a subagent finishing does not answer the prompt the user has not`() {
+        var session = ClaudeSession(id: "1", cwd: "/tmp")
+        session.subagentStarted()
+        session.awaitInput("Claude needs your permission to use Bash")
+
+        session.subagentStopped()
+
+        #expect(session.phase == .awaitingInput)
+        #expect(session.pendingPrompt == "Claude needs your permission to use Bash")
+    }
+
+    @Test
+    func `a late subagent stop does not revive a finished turn`() {
+        var session = ClaudeSession(id: "1", cwd: "/tmp")
+        session.stop()
+
+        session.subagentStopped()
+
+        #expect(session.phase == .stopped)
+    }
+
+    @Test
+    func `reviving an ended session keeps what it had done`() {
+        let start = Date().addingTimeInterval(-600)
+        var session = ClaudeSession(id: "1", cwd: "/tmp", startedAt: start)
+        session.taskCompleted()
+        session.end()
+
+        session.revive()
+
+        #expect(session.phase == .active)
+        #expect(session.isActive)
+        #expect(session.endedAt == nil)
+        #expect(session.completedTaskCount == 1)
+        #expect(session.startedAt == start)
+    }
 }

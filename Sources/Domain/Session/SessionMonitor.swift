@@ -30,6 +30,14 @@ public final class SessionMonitor {
     /// started is dropped: ClaudeBar may well have launched mid-session, and
     /// inventing a session from a `Stop` would show one with no start time.
     public func processEvent(_ event: SessionEvent) {
+        // Liveness is recorded before staleness is judged. An event is proof its
+        // session is alive, and pruning first would let a session that had been
+        // quiet overnight be retired by the very event breaking the silence —
+        // and then dropped, because the routing below would no longer find it.
+        if let index = sessions.firstIndex(where: { $0.id == event.sessionId }) {
+            sessions[index].touch(at: event.receivedAt)
+        }
+
         // Sessions used to be cleaned up by the next SessionStart ending the
         // previous one. Now that they coexist, something has to retire the ones
         // that died without a SessionEnd, and an arriving event is the only tick
@@ -42,7 +50,6 @@ public final class SessionMonitor {
         }
 
         guard let index = sessions.firstIndex(where: { $0.id == event.sessionId }) else { return }
-        sessions[index].touch(at: event.receivedAt)
 
         switch event.eventName {
         case .sessionStart:
@@ -78,7 +85,11 @@ public final class SessionMonitor {
     ) {
         for index in sessions.indices where sessions[index].isActive {
             guard now.timeIntervalSince(sessions[index].lastEventAt) >= idleTimeout else { continue }
-            sessions[index].end(at: sessions[index].lastEventAt)
+            // Ended now, not when it last spoke. Backdating would put the
+            // session past its retention the instant it was retired, so it
+            // would vanish rather than spend its ten minutes on the board like
+            // any other session that just finished.
+            sessions[index].end(at: now)
         }
 
         sessions.removeAll { session in
@@ -121,7 +132,11 @@ public final class SessionMonitor {
         // keeps its task count and start time instead of showing it twice.
         if let index = sessions.firstIndex(where: { $0.id == event.sessionId }) {
             sessions[index].touch(at: event.receivedAt)
-            sessions[index].resume()
+            // `resume` is a no-op once a session has ended, so an ended one has
+            // to be revived explicitly — otherwise `claude --resume` would
+            // reach a record that ignores every event for the rest of its life,
+            // since the id already exists and no new session is appended.
+            sessions[index].revive(at: event.receivedAt)
             return
         }
 

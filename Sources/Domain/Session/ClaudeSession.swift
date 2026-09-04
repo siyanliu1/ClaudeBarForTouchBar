@@ -87,6 +87,11 @@ public struct ClaudeSession: Sendable, Equatable, Identifiable {
     public mutating func subagentStopped() {
         guard phase != .ended else { return }
         activeSubagentCount = max(0, activeSubagentCount - 1)
+        // Only a session that was showing its subagents re-derives its phase
+        // here. A session blocked on the user still is when a subagent reports
+        // back — recomputing would call it active and throw away the prompt
+        // nobody has answered yet.
+        guard phase == .subagentsWorking else { return }
         updatePhase()
     }
 
@@ -97,6 +102,21 @@ public struct ClaudeSession: Sendable, Equatable, Identifiable {
         guard phase != .ended else { return }
         if let prompt { lastPrompt = prompt }
         updatePhase()
+    }
+
+    /// Brings an ended session back, keeping the history it accumulated.
+    ///
+    /// `claude --resume` reports the same session id, so this is the same
+    /// session continuing rather than a new one: its start time and task count
+    /// are still true. `resume()` cannot do this — it refuses to touch an ended
+    /// session, which is what makes it safe to call on every prompt.
+    public mutating func revive(at date: Date = Date()) {
+        endedAt = nil
+        stoppedAt = nil
+        pendingPrompt = nil
+        activeSubagentCount = 0
+        phase = .active
+        lastEventAt = date
     }
 
     /// Records that Claude Code is blocked waiting on the user, carrying the
