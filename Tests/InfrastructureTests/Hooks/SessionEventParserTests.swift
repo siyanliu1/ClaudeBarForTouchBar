@@ -149,4 +149,74 @@ struct SessionEventParserTests {
         #expect(event != nil)
         #expect(event?.sessionId == "abc")
     }
+    @Test
+    func `parses the transcript path carried by every hook payload`() {
+        let json = """
+        {"session_id": "abc", "hook_event_name": "SessionStart", "cwd": "/tmp", \
+         "transcript_path": "/Users/me/.claude/projects/p/abc.jsonl"}
+        """
+
+        let event = SessionEventParser.parse(json.data(using: .utf8)!)
+
+        #expect(event?.transcriptPath == "/Users/me/.claude/projects/p/abc.jsonl")
+    }
+
+    @Test
+    func `parses the user prompt from UserPromptSubmit`() {
+        let json = """
+        {"session_id": "abc", "hook_event_name": "UserPromptSubmit", "cwd": "/tmp", "prompt": "run the tests"}
+        """
+
+        let event = SessionEventParser.parse(json.data(using: .utf8)!)
+
+        #expect(event?.userPrompt == "run the tests")
+    }
+
+    @Test
+    func `parses the last assistant message from Stop`() {
+        let json = """
+        {"session_id": "abc", "hook_event_name": "Stop", "cwd": "/tmp", "last_assistant_message": "All done."}
+        """
+
+        let event = SessionEventParser.parse(json.data(using: .utf8)!)
+
+        #expect(event?.lastAssistantMessage == "All done.")
+    }
+
+    @Test
+    func `parses the message and type from Notification`() {
+        let json = """
+        {"session_id": "abc", "hook_event_name": "Notification", "cwd": "/tmp", \
+         "message": "Claude needs your permission to use Bash", "notification_type": "agent_needs_input"}
+        """
+
+        let event = SessionEventParser.parse(json.data(using: .utf8)!)
+
+        #expect(event?.message == "Claude needs your permission to use Bash")
+        #expect(event?.notificationType == "agent_needs_input")
+    }
+
+    @Test
+    func `truncates free text to keep a runaway prompt out of memory`() {
+        let long = String(repeating: "a", count: 900)
+        let json = """
+        {"session_id": "abc", "hook_event_name": "UserPromptSubmit", "cwd": "/tmp", "prompt": "\(long)"}
+        """
+
+        let event = SessionEventParser.parse(json.data(using: .utf8)!)
+
+        #expect(event?.userPrompt?.count == 500)
+    }
+
+    @Test
+    func `leaves the transcript path untruncated`() {
+        let path = "/tmp/" + String(repeating: "d/", count: 300) + "t.jsonl"
+        let json = """
+        {"session_id": "abc", "hook_event_name": "Stop", "cwd": "/tmp", "transcript_path": "\(path)"}
+        """
+
+        let event = SessionEventParser.parse(json.data(using: .utf8)!)
+
+        #expect(event?.transcriptPath == path)
+    }
 }

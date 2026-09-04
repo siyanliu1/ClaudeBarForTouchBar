@@ -91,6 +91,7 @@ public final class SessionMonitor {
     }
 
     private func handleNotification(_ event: SessionEvent) {
+        guard event.blocksOnUser else { return }
         guard activeSession?.id == event.sessionId else { return }
         activeSession?.awaitInput(event.message, at: event.receivedAt)
     }

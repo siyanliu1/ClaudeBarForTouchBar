@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Hook events now carry what Claude Code sends with them: the transcript path (every event), the user's prompt (`UserPromptSubmit`), the closing message of a turn (`Stop`), and a notification's message and type. Free text is capped at 500 characters. Nothing displays these yet; they are what the Touch Bar board and live context tracking will read. (#1)
+- The `Notification` hook is now installed, so "Needs You" is finally reachable: until now the phase existed in the domain and was drawn by the notch, but no hook ever produced it. Only notifications that actually block a turn count — a permission prompt stops the session, going idle or finishing a login does not. (#1)
 - `JSONSettingsRepository` now conforms to `MultiAccountSettingsRepository`, persisting per-provider accounts under `providers.{id}.accounts` and the active account under `providers.{id}.activeAccountId`. Nothing changes for existing installs: a provider with no `accounts` key reads back an empty list, which is the single-account path, so no migration runs. Removing the active account clears the active pointer rather than leaving it dangling at an account that is gone. (#164)
 
 ---

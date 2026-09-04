@@ -32,7 +32,8 @@ struct HookInstallerTests {
         #expect(events.contains("SubagentStop"))
         #expect(events.contains("Stop"))
         #expect(events.contains("UserPromptSubmit"))
-        #expect(events.count == 7)
+        #expect(events.contains("Notification"))
+        #expect(events.count == 8)
     }
 
     @Test
