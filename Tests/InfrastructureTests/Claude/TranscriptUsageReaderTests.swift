@@ -247,8 +247,119 @@ struct TranscriptUsageReaderTests {
         try withTranscript(transcript(big)) { path in
             let result = try reader.read(path: path, from: 0, previous: nil)
 
-            #expect(result.usage?.contextWindow == 1_000_000)
-            #expect(abs((result.usage?.contextPercent ?? 0) - 20.9763) < 0.0001)
+            // 209,763 fits the next size up, so it is measured against 500k
+            // rather than being called a fifth of a million.
+            #expect(result.usage?.contextWindow == 500_000)
+            #expect(abs((result.usage?.contextPercent ?? 0) - 41.9526) < 0.0001)
+        }
+    }
+    // MARK: - Records That Are Not Turns
+
+    @Test
+    func `a synthetic notice does not report a full session as empty`() throws {
+        // Claude Code writes its own notices as real assistant records with a
+        // usage block of all zeros.
+        let synthetic = """
+        {"type":"assistant","message":{"id":"msg_2","model":"<synthetic>",\
+        "content":[{"type":"text","text":"You've hit your session limit"}],\
+        "usage":{"input_tokens":0,"cache_read_input_tokens":0,\
+        "cache_creation_input_tokens":0,"output_tokens":0}},"requestId":"req_2"}
+        """
+        let contents = transcript(assistant(input: 2, cacheRead: 124_000, cacheCreation: 0), synthetic)
+
+        try withTranscript(contents) { path in
+            let result = try reader.read(path: path, from: 0, previous: nil)
+
+            #expect(result.usage?.contextTokens == 124_002)
+            #expect(result.usage?.model == "claude-opus-4-6")
+        }
+    }
+
+    @Test
+    func `a synthetic notice arriving alone leaves the previous reading standing`() throws {
+        try withTranscript(transcript(assistant(input: 2, cacheRead: 124_000, cacheCreation: 0))) { path in
+            let first = try reader.read(path: path, from: 0, previous: nil)
+
+            let synthetic = """
+            {"type":"assistant","message":{"id":"msg_2","model":"<synthetic>",\
+            "content":[{"type":"text","text":"No response requested."}],\
+            "usage":{"input_tokens":0,"cache_read_input_tokens":0,\
+            "cache_creation_input_tokens":0,"output_tokens":0}},"requestId":"req_2"}
+            """
+            try append(transcript(synthetic), to: path)
+            let second = try reader.read(path: path, from: first.offset, previous: first.usage)
+
+            #expect(second.usage?.contextTokens == 124_002)
+        }
+    }
+
+    // MARK: - Window Inference
+
+    @Test
+    func `the inferred window only ever grows as a session fills`() {
+        // Crossing a size still drops the percentage — 499k of an assumed 500k
+        // reads 99.8%, and one token later 60% of a million. That is the price
+        // of inferring a window nothing states, and it is paid at most twice in
+        // a session, each time replacing a near-full reading that was wrong.
+        // What must not happen is the window shrinking, which would make the
+        // percentage climb while the session emptied.
+        var window = 0
+
+        for tokens in [150_000, 199_999, 200_001, 260_000, 499_000, 600_000] {
+            let next = ModelContextWindow.window(
+                for: "claude-opus-5",
+                holding: tokens,
+                previously: window
+            )
+            #expect(next >= window, "window shrank at \(tokens) tokens")
+            window = next
+        }
+    }
+
+    @Test
+    func `a reading is never past full`() {
+        var window = 0
+
+        for tokens in [150_000, 199_999, 200_001, 600_000, 1_400_000] {
+            window = ModelContextWindow.window(for: "claude-opus-5", holding: tokens, previously: window)
+            let usage = SessionUsage(
+                contextTokens: tokens,
+                contextWindow: window,
+                model: "claude-opus-5",
+                currentTool: nil
+            )
+            #expect(usage.contextPercent <= 100)
+        }
+    }
+
+    @Test
+    func `a session just past the standard window is measured against the next size up`() {
+        // Not a million: reporting a nearly-full window as a fifth full is the
+        // opposite of what the reading is for.
+        #expect(ModelContextWindow.window(for: "claude-opus-5", holding: 200_001) == 500_000)
+        #expect(ModelContextWindow.window(for: "claude-opus-5", holding: 600_000) == 1_000_000)
+    }
+
+    @Test
+    func `an inferred window is never given back`() {
+        #expect(
+            ModelContextWindow.window(for: "claude-opus-5", holding: 10_000, previously: 500_000)
+                == 500_000
+        )
+    }
+
+    @Test
+    func `a long context model starts at its own window`() {
+        #expect(ModelContextWindow.window(for: "claude-sonnet-4-6[1m]", holding: 10) == 1_000_000)
+    }
+
+    @Test
+    func `a notebook is summarised by its own path argument`() throws {
+        let content = toolUse("NotebookEdit", #"{"notebook_path":"/repo/analysis/model.ipynb"}"#)
+        try withTranscript(transcript(assistant(content: content))) { path in
+            let result = try reader.read(path: path, from: 0, previous: nil)
+
+            #expect(result.usage?.currentTool == "NotebookEdit · model.ipynb")
         }
     }
 }

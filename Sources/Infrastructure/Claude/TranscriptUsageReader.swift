@@ -63,10 +63,19 @@ public struct TranscriptUsageReader: Sendable {
             if contextTokens == nil, let usage = message["usage"] as? [String: Any] {
                 // What the next request will carry, which is what "context used"
                 // means: fresh input plus everything replayed from the cache.
-                contextTokens = (usage["input_tokens"] as? Int ?? 0)
+                let tokens = (usage["input_tokens"] as? Int ?? 0)
                     + (usage["cache_read_input_tokens"] as? Int ?? 0)
                     + (usage["cache_creation_input_tokens"] as? Int ?? 0)
-                model = message["model"] as? String
+                // Claude Code writes its own notices — "You've hit your session
+                // limit", "API Error: 503" — as real assistant records carrying
+                // a usage block of all zeros, usually under the model name
+                // "<synthetic>". A turn that carried no context at all did not
+                // happen, so keep walking back rather than reporting a full
+                // session as empty.
+                if tokens > 0 {
+                    contextTokens = tokens
+                    model = message["model"] as? String
+                }
             }
 
             if contextTokens != nil, tool != nil { break }
@@ -76,7 +85,11 @@ public struct TranscriptUsageReader: Sendable {
 
         return SessionUsage(
             contextTokens: contextTokens,
-            contextWindow: ModelContextWindow.window(for: model, holding: contextTokens),
+            contextWindow: ModelContextWindow.window(
+                for: model,
+                holding: contextTokens,
+                previously: previous?.contextWindow
+            ),
             model: model,
             currentTool: tool ?? previous?.currentTool
         )
@@ -102,8 +115,12 @@ public struct TranscriptUsageReader: Sendable {
             guard let command = input["command"] as? String else { return nil }
             let flattened = command.split(whereSeparator: \.isNewline).joined(separator: " ")
             return String(flattened.prefix(Self.maxDetailLength))
-        case "Edit", "Write", "Read", "NotebookEdit":
+        case "Edit", "Write", "Read":
             guard let path = input["file_path"] as? String else { return nil }
+            return (path as NSString).lastPathComponent
+        case "NotebookEdit":
+            // The only file tool that does not call its argument file_path.
+            guard let path = input["notebook_path"] as? String else { return nil }
             return (path as NSString).lastPathComponent
         case "Agent", "Task":
             guard let description = input["description"] as? String else { return nil }
