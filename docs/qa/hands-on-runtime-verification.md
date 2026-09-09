@@ -297,6 +297,129 @@ VoiceOver has nothing to announce but "switch".
 
 ---
 
+## Popover, notch and theme import
+
+A second pass, driven through the app's own UI.
+
+### Finding the menu bar item is harder than it should be
+
+`MenuBarExtra`'s label is deliberately `Color.clear.frame(width: 1, height: 1)`
+(`ClaudeBarApp.swift:314`) — every menu-bar pixel is drawn by
+`StatusItemLabelDriver` into `statusItem.button.image`. The item does work: it
+renders the configured provider's number (a green `100%` for Codex).
+
+But on this 13-inch display it is **collapsed into macOS 26's menu-bar overflow**,
+behind the `‹` chevron, and is invisible until that is expanded. It took a
+quit/relaunch pixel diff and an expanded-overflow capture to establish that it
+existed at all — `attach` succeeded, so none of the driver's three diagnostics
+(`Status item has no button`, `Attached … via the watchdog`, `No drawable status
+item found`) ever fired. A first-time user on a crowded menu bar could
+reasonably conclude the app had not launched.
+
+### The popover
+
+**Confirmed — the first open has no chrome.** The audit's narrowed finding
+reproduces exactly. First open after launch: the gradient plus a floating
+"Claude Unavailable" card, with no header, no provider pills and no action bar.
+Every subsequent open renders the lot — header with an amber `UNAVAILABLE`
+badge, the pill row (Claude / Codex / Gemini / Antigravity / +), the body, and
+the action bar (Dashboard, Refresh, gear, ✕).
+
+**Opening the dropdown does drive a refresh** — the button reads "Syncing…" and
+the providers repopulate, which is the path fix `43d3a39` re-routed through the
+monitor.
+
+**Confirmed — and broader than reported: overview mode paints green HEALTHY over
+errors.** With Overview Mode on, five providers each show a green `HEALTHY` pill
+immediately above their own error row:
+
+| Provider | Badge | Row directly beneath it |
+|---|---|---|
+| Claude | HEALTHY | ⚠ The Claude CLI did not see this account's subscription — its… |
+| Gemini | HEALTHY | ⚠ Authentication required. Please log in. |
+| Antigravity | HEALTHY | ⚠ Command did not complete within the timeout. |
+| Z.ai | HEALTHY | ⚠ Authentication required. Please log in. |
+| Amp | HEALTHY | ⚠ CLI not found: AmpCode |
+
+Only Codex is genuinely healthy, and it is the only one of the six that renders
+actual quota cards (Session 100 % / Weekly 100 %, with reset countdowns). The
+audit called this one row; it is in fact every provider that fails.
+
+**New — the actionable instruction is truncated.** The Claude error is surfaced
+to the user, which is right, but the card clips it mid-command:
+`…its usage screen showed API billing only. Run \`claude lo…`. The one thing the
+message exists to tell the user is the part that gets cut.
+
+### The notch
+
+It renders on a Mac with no physical cutout, as a virtual pill drawn over the
+menu bar, and both of its states work:
+
+- **Session state** — amber ⚠ `Needs you` in the leading lane and the hook's
+  message in the trailing lane (`Claude needs your…mission to use Bash`,
+  middle-truncated).
+- **Quota state** — collapsed as `5h 100%` with a green bar; a click expands it
+  to a `Usage` panel with `5h` and `7d` rows and two buttons.
+- **`Snooze 30m` works** — the panel dismisses on click. (The audit's complaint
+  was about the session state specifically, which was not re-tested here.)
+
+**Observed once: the notch window swallowed a menu-bar click.** A click aimed at
+ClaudeBar's own status item landed on the notch panel instead and expanded it.
+The notch window is 900 × 420 pt pinned at `y = 0`, so it covers the middle of
+the menu bar; this is the concrete instance of the interactive-rect concern the
+audit raised at `NotchWindowController.swift:111`.
+
+### Theme import — the audit's other device question, also wrong
+
+The audit concluded, from documentation, that
+`startAccessingSecurityScopedResource()` must return false in a non-sandboxed
+app and that import therefore **"fails on every file, every time"** with
+"Cannot access file".
+
+It does not. Driven through the real `.fileImporter` panel with a complete
+`.itermcolors` file:
+
+- the guard passed, the theme imported, and `QAFull` appeared as a sixth theme
+  card **immediately**;
+- it persisted to `~/.claudebar/themes/qafull.json`;
+- selecting it applied the palette live across the Settings window and wrote
+  `themeMode = imported-qafull`.
+
+Two further claims fall with it:
+
+- **"The Appearance grid never refreshes after an import or delete"** — it
+  refreshed on both.
+- **"Deleting the active imported theme leaves `themeMode` pointing at a removed
+  id"** — deleting it while active repointed `themeMode` to `system`, removed
+  the file, and re-rendered the window. Clean fallback.
+
+**Real defect found instead: parser errors are unreadable.** An `.itermcolors`
+file missing `Ansi 8`–`Ansi 15` surfaced as:
+
+```
+Import failed: The operation couldn't be completed.
+(Infrastructure.ITermColorsParserError error 0.)
+```
+
+`ITermColorsParserError` is not `LocalizedError`, so
+`missingColor("Ansi 8 Color")` — which names the exact key at fault — is thrown
+away and replaced with a case index. (The index is not even the right one for
+the case that threw, which shows how little it means.) Same defect class as the
+audit's `HookInstaller.InstallerError` finding.
+
+### Also seen in passing
+
+```
+[ERROR] [credentials] Keychain read of 'Claude Code-credentials' failed:
+        security exited 44 — security: SecKeychainSearchCreateFromAttributes:
+        One or more parameters passed to a function were not valid.
+```
+
+Repeatable, once per Claude probe cycle. The probe survives it, but a `security`
+invocation is being built with invalid arguments.
+
+---
+
 ## Method, and two deviations worth disclosing
 
 Observation channels: `screencapture -b` for the Touch Bar (no permission
@@ -316,5 +439,13 @@ accessibility tree of the Settings window.
    build; every Touch Bar, hook and probe result above was taken with
    `LSUIElement` true.
 
-Left unverified: the popover/dropdown itself, the notch, theme import, Sparkle
-updates, and the several dozen cosmetic findings in the audit's tables.
+Left unverified: Sparkle updates, the multi-account subsystem, Bedrock, and the
+remaining cosmetic findings in the audit's tables. The Touch Bar swipe-to-scroll
+question is still open.
+
+Of the audit's **two** device-dependent questions — the ones it said it had
+settled from documentation — **both turned out to be wrong** when run: the Touch
+Bar session strip is hit-testable, and theme import works. Three further claims
+in its tables (grid never refreshes, dangling `themeMode`, and the stated
+mechanism of the >1 KB hook bug) were also wrong. Its claims that *were*
+confirmed on hardware were confirmed exactly.
