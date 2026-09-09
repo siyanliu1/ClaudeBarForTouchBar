@@ -57,7 +57,7 @@ jobs:
 
       # No explicit Swift toolchain setup: use the runner's bundled Xcode, the
       # same toolchain Tuist builds its macro prebuilts (SwiftSyntax) against.
-      # Mirrors build.yml and release.yml, where installing a separate toolchain
+      # Mirrors tests.yml and release.yml, where installing a separate toolchain
       # via SwiftyLab/setup-swift drifted out of sync with those prebuilts and
       # broke the build ("SwiftSyntax was created for incompatible target").
 

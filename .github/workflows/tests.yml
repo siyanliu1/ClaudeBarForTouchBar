@@ -1,4 +1,13 @@
-name: Tests
+name: CI
+
+# Tests and the Release build share one job on purpose. They need the same
+# `tuist install`, which is by far the most expensive step (about seven minutes,
+# most of it cloning aws-sdk-swift), and as two separate workflows they each
+# paid for it on their own runner. The Debug build the old build.yml ran is not
+# lost either: the
+# ClaudeBar scheme's build action covers the app target, so `xcodebuild test`
+# already compiles all of Sources/App. Only Release needs its own step, because
+# the scheme's test action is pinned to the Debug configuration.
 
 on:
   push:
@@ -9,12 +18,12 @@ on:
 
 # macOS runners are slow; a superseded push should not keep one busy.
 concurrency:
-  group: tests-${{ github.ref }}
+  group: ci-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   test:
-    name: Unit Tests with Coverage
+    name: Test and Build
     runs-on: macos-26
 
     steps:
@@ -111,3 +120,14 @@ jobs:
           verbose: true
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+      # Last, so a Release-only failure still leaves the test result and the
+      # coverage upload behind. Debug is already covered by the test run above.
+      - name: Build Release
+        run: |
+          xcodebuild build \
+            -scheme ClaudeBar \
+            -workspace ClaudeBar.xcworkspace \
+            -destination 'platform=macOS,arch=arm64' \
+            -skipMacroValidation \
+            -configuration Release
