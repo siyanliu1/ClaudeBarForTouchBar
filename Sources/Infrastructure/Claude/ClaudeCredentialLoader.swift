@@ -6,17 +6,23 @@ public struct ClaudeOAuthCredentials: Sendable, Equatable {
     public var accessToken: String
     public var refreshToken: String?
     public var expiresAt: Double?  // Milliseconds since epoch
+    /// When the refresh token itself dies. Past this, no refresh can succeed and
+    /// the user has to log in again — which is a different thing to tell them
+    /// than "your token needs refreshing".
+    public var refreshTokenExpiresAt: Double?  // Milliseconds since epoch
     public var subscriptionType: String?
 
     public init(
         accessToken: String,
         refreshToken: String? = nil,
         expiresAt: Double? = nil,
+        refreshTokenExpiresAt: Double? = nil,
         subscriptionType: String? = nil
     ) {
         self.accessToken = accessToken
         self.refreshToken = refreshToken
         self.expiresAt = expiresAt
+        self.refreshTokenExpiresAt = refreshTokenExpiresAt
         self.subscriptionType = subscriptionType
     }
 }
@@ -167,6 +173,28 @@ public struct ClaudeCredentialLoader: Sendable {
         return nowMs + Self.refreshBufferMs >= expiresAt
     }
 
+    /// Whether the session is past the point a refresh could rescue it, so the
+    /// only way back is `claude login`.
+    ///
+    /// Deliberately answers false whenever it cannot *prove* otherwise: a token
+    /// with no recorded expiry (what `claude setup-token` writes) is unknown,
+    /// not dead, and reporting it as expired would send users to log in over a
+    /// session that works. ``needsRefresh(_:)`` is the opposite — it errs toward
+    /// refreshing — because being wrong there costs a round trip, not a lie.
+    public func isBeyondRefresh(_ oauth: ClaudeOAuthCredentials) -> Bool {
+        let nowMs = Date().timeIntervalSince1970 * 1000
+
+        // The access token has to be provably dead before anything else matters.
+        guard let expiresAt = oauth.expiresAt, nowMs >= expiresAt else { return false }
+
+        // Nothing to refresh with.
+        guard let refreshToken = oauth.refreshToken, !refreshToken.isEmpty else { return true }
+
+        // A refresh token with no stated expiry is assumed good.
+        guard let refreshExpiresAt = oauth.refreshTokenExpiresAt else { return false }
+        return nowMs >= refreshExpiresAt
+    }
+
     /// Saves updated credentials back to the original source.
     public func saveCredentials(_ result: ClaudeCredentialResult) {
         // Environment credentials are read-only (set via env var, not persisted by us)
@@ -246,6 +274,7 @@ public struct ClaudeCredentialLoader: Sendable {
                 accessToken: accessToken,
                 refreshToken: oauthDict["refreshToken"] as? String,
                 expiresAt: oauthDict["expiresAt"] as? Double,
+                refreshTokenExpiresAt: oauthDict["refreshTokenExpiresAt"] as? Double,
                 subscriptionType: oauthDict["subscriptionType"] as? String
             )
 
@@ -327,6 +356,7 @@ public struct ClaudeCredentialLoader: Sendable {
                 accessToken: accessToken,
                 refreshToken: oauthDict["refreshToken"] as? String,
                 expiresAt: oauthDict["expiresAt"] as? Double,
+                refreshTokenExpiresAt: oauthDict["refreshTokenExpiresAt"] as? Double,
                 subscriptionType: oauthDict["subscriptionType"] as? String
             )
 

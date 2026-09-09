@@ -23,6 +23,10 @@ public final class ClaudeUsageProbe: UsageProbe, @unchecked Sendable {
     /// Reported when `claude /usage` shows the API-billing cost panel for an
     /// account the config file says is a subscription. Surfaced only if the
     /// usage API cannot answer either, so it names both ways out (#271).
+    /// Shown when the stored login is provably dead. Names the command, because
+    /// the whole point of the message is that the user can act on it.
+    public static let reloginHint = "Run `claude login` in terminal to log in again."
+
     public static let subscriptionMisreadAsApiBilling =
         "The Claude CLI did not see this account's subscription — its usage screen showed API billing only. "
         + "Run `claude login` again, or switch Claude to API mode in Settings."
@@ -30,11 +34,16 @@ public final class ClaudeUsageProbe: UsageProbe, @unchecked Sendable {
     /// Resolves account info from `~/.claude.json`
     private let accountInfoResolver: any AccountInfoResolving
 
+    /// Reads the stored OAuth session, so an expired login can be named as such
+    /// instead of inferred from whatever the CLI happened to render.
+    private let credentialLoader: ClaudeCredentialLoader
+
     public init(
         claudeBinary: String = "claude",
         timeout: TimeInterval = 20.0,
         cliExecutor: CLIExecutor? = nil,
-        accountInfoResolver: any AccountInfoResolving = ClaudeAccountInfoResolver()
+        accountInfoResolver: any AccountInfoResolving = ClaudeAccountInfoResolver(),
+        credentialLoader: ClaudeCredentialLoader = ClaudeCredentialLoader()
     ) {
         self.claudeBinary = claudeBinary
         self.timeout = timeout
@@ -44,6 +53,7 @@ public final class ClaudeUsageProbe: UsageProbe, @unchecked Sendable {
         )
         self.terminalRenderer = TerminalRenderer(cols: 160, rows: 50)
         self.accountInfoResolver = accountInfoResolver
+        self.credentialLoader = credentialLoader
     }
 
     public func isAvailable() async -> Bool {
@@ -334,6 +344,19 @@ public final class ClaudeUsageProbe: UsageProbe, @unchecked Sendable {
                 // ClaudeProvider from falling back to the usage API, which can
                 // still read the real numbers. Fail instead so that runs (#271).
                 if let accountInfo, accountInfo.isSubscriptionBilled {
+                    // Before blaming the CLI for missing the subscription, ask
+                    // the one thing that actually explains this screen: is the
+                    // login we hold still alive? An expired session renders
+                    // exactly this panel, and "log in again" is something the
+                    // user can act on — the alternative message is not.
+                    if let credentials = credentialLoader.loadCredentials(),
+                       credentialLoader.isBeyondRefresh(credentials.oauth) {
+                        AppLog.probes.error(
+                            "Claude session expired beyond refresh; /usage fell back to the API billing panel"
+                        )
+                        throw ProbeError.sessionExpired(hint: Self.reloginHint)
+                    }
+
                     AppLog.probes.error(
                         "Claude /usage rendered the API billing cost panel for a \(accountInfo.billingType ?? "subscription") account — not falling back to /cost"
                     )

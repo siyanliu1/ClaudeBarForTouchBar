@@ -130,16 +130,21 @@ struct MenuContentView: View {
             onHookSettingsChanged?(enabled)
         }
         .task {
+            // Show header and tabs immediately. This has to come first: the
+            // permission request below awaits a system dialog, and everything
+            // gated on `animateIn` — the header, the provider pills, the whole
+            // action bar — stays invisible until it returns. On the first open
+            // after install that left the user looking at a single card with
+            // nothing to click.
+            withAnimation(.easeOut(duration: 0.6)) {
+                animateIn = true
+            }
+
             // Request alert permission once (after app run loop is active)
             if !hasRequestedNotificationPermission {
                 hasRequestedNotificationPermission = true
                 let granted = await quotaAlerter.requestPermission()
                 AppLog.notifications.info("Alert permission request result: \(granted ? "granted" : "denied")")
-            }
-
-            // Show header and tabs immediately
-            withAnimation(.easeOut(duration: 0.6)) {
-                animateIn = true
             }
             // Then fetch data in background
             if settings.overviewModeEnabled {
@@ -777,7 +782,11 @@ struct MenuContentView: View {
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 16)
         }
-        .frame(height: 140)
+        .padding(.vertical, 8)
+        // Minimum, not fixed: a recovery hint that names a command is longer
+        // than one line, and a fixed height clipped it mid-command — losing the
+        // only part of the message the user can act on.
+        .frame(minHeight: 140)
         .frame(maxWidth: .infinity)
         .glassCard()
     }

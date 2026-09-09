@@ -18,19 +18,25 @@ struct ClaudeCredentialLoaderTests {
     private func createCredentialsFile(
         at directory: URL,
         accessToken: String = "test-access-token",
-        refreshToken: String = "test-refresh-token",
+        refreshToken: String? = "test-refresh-token",
         expiresAt: Double? = nil,
+        refreshTokenExpiresAt: Double? = nil,
         subscriptionType: String? = nil
     ) throws {
         let claudeDir = directory.appendingPathComponent(".claude", isDirectory: true)
         try FileManager.default.createDirectory(at: claudeDir, withIntermediateDirectories: true)
 
         var oauthDict: [String: Any] = [
-            "accessToken": accessToken,
-            "refreshToken": refreshToken
+            "accessToken": accessToken
         ]
+        if let refreshToken {
+            oauthDict["refreshToken"] = refreshToken
+        }
         if let expiresAt {
             oauthDict["expiresAt"] = expiresAt
+        }
+        if let refreshTokenExpiresAt {
+            oauthDict["refreshTokenExpiresAt"] = refreshTokenExpiresAt
         }
         if let subscriptionType {
             oauthDict["subscriptionType"] = subscriptionType
@@ -467,4 +473,87 @@ struct ClaudeCredentialLoaderTests {
         // So needsRefresh itself stays true, but the probe won't attempt refresh.
         #expect(loader.needsRefresh(oauth) == true)
     }
+
+    // MARK: - Beyond-Refresh Tests
+
+    /// `needsRefresh` answers "should we refresh?"; this answers "can a refresh
+    /// still work at all?". Only the second one means the user has to log in.
+    @Test
+    func `isBeyondRefresh is true when the access token and the refresh token have both expired`() throws {
+        let tempDir = try makeTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+
+        let anHourAgo = Date().addingTimeInterval(-3600).timeIntervalSince1970 * 1000
+        let aDayAgo = Date().addingTimeInterval(-86_400).timeIntervalSince1970 * 1000
+        try createCredentialsFile(at: tempDir, expiresAt: anHourAgo, refreshTokenExpiresAt: aDayAgo)
+
+        let loader = ClaudeCredentialLoader(homeDirectory: tempDir.path, useKeychain: false, environment: [:])
+        let result = loader.loadCredentials()
+
+        #expect(result != nil)
+        #expect(loader.isBeyondRefresh(result!.oauth) == true)
+    }
+
+    @Test
+    func `isBeyondRefresh is false while the refresh token is still good`() throws {
+        let tempDir = try makeTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+
+        // The CLI refreshes this one itself; reporting it as expired would be a lie.
+        let anHourAgo = Date().addingTimeInterval(-3600).timeIntervalSince1970 * 1000
+        let nextWeek = Date().addingTimeInterval(7 * 86_400).timeIntervalSince1970 * 1000
+        try createCredentialsFile(at: tempDir, expiresAt: anHourAgo, refreshTokenExpiresAt: nextWeek)
+
+        let loader = ClaudeCredentialLoader(homeDirectory: tempDir.path, useKeychain: false, environment: [:])
+        let result = loader.loadCredentials()
+
+        #expect(result != nil)
+        #expect(loader.isBeyondRefresh(result!.oauth) == false)
+    }
+
+    @Test
+    func `isBeyondRefresh is true when the access token expired and there is no refresh token`() throws {
+        let tempDir = try makeTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+
+        let anHourAgo = Date().addingTimeInterval(-3600).timeIntervalSince1970 * 1000
+        try createCredentialsFile(at: tempDir, refreshToken: nil, expiresAt: anHourAgo)
+
+        let loader = ClaudeCredentialLoader(homeDirectory: tempDir.path, useKeychain: false, environment: [:])
+        let result = loader.loadCredentials()
+
+        #expect(result != nil)
+        #expect(result!.oauth.refreshToken == nil)
+        #expect(loader.isBeyondRefresh(result!.oauth) == true)
+    }
+
+    @Test
+    func `isBeyondRefresh is false when the credentials carry no expiry at all`() throws {
+        let tempDir = try makeTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+
+        // `claude setup-token` writes a token with no expiry. Unknown is not expired.
+        try createCredentialsFile(at: tempDir)
+
+        let loader = ClaudeCredentialLoader(homeDirectory: tempDir.path, useKeychain: false, environment: [:])
+        let result = loader.loadCredentials()
+
+        #expect(result != nil)
+        #expect(loader.needsRefresh(result!.oauth) == true)
+        #expect(loader.isBeyondRefresh(result!.oauth) == false)
+    }
+
+    @Test
+    func `refreshTokenExpiresAt is read off the credentials file`() throws {
+        let tempDir = try makeTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+
+        try createCredentialsFile(at: tempDir, refreshTokenExpiresAt: 1_787_941_267_825)
+
+        let loader = ClaudeCredentialLoader(homeDirectory: tempDir.path, useKeychain: false, environment: [:])
+        let result = loader.loadCredentials()
+
+        #expect(result?.oauth.refreshTokenExpiresAt == 1_787_941_267_825)
+    }
+
 }
