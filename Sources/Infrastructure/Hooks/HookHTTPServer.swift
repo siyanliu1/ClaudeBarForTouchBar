@@ -19,6 +19,11 @@ public final class HookHTTPServer: @unchecked Sendable {
     /// The actual port the server is listening on
     public private(set) var actualPort: UInt16 = 0
 
+    /// Hook payloads are a few KB at most; this only bounds a runaway sender.
+    private static let maxRequestBytes = 1 << 20
+
+    private static let continueResponse = Data("HTTP/1.1 100 Continue\r\n\r\n".utf8)
+
     public init(defaultPort: UInt16 = HookConstants.defaultPort) {
         self.defaultPort = defaultPort
     }
@@ -94,32 +99,73 @@ public final class HookHTTPServer: @unchecked Sendable {
     /// Runs on `queue` (via newConnectionHandler).
     private func handleConnection(_ connection: NWConnection) {
         connection.start(queue: queue)
+        receive(on: connection, into: HTTPRequestBuffer())
+    }
 
-        // Read up to 64KB (more than enough for hook payloads)
-        // Callback runs on `queue` (connection started on queue).
-        connection.receive(minimumIncompleteLength: 1, maximumLength: 65536) { [weak self] data, _, isComplete, error in
-            defer {
-                // Send minimal HTTP 200 response and close
-                let response = "HTTP/1.1 200 OK\r\nContent-Length: 0\r\nConnection: close\r\n\r\n"
-                connection.send(
-                    content: response.data(using: .utf8),
-                    contentContext: .finalMessage,
-                    isComplete: true,
-                    completion: .contentProcessed { _ in
-                        connection.cancel()
-                    }
-                )
-            }
-
-            guard let data, error == nil else {
-                if let error {
-                    AppLog.hooks.debug("Connection error: \(error.localizedDescription)")
-                }
+    /// Reads until the whole request has arrived, then answers and closes.
+    ///
+    /// A single `receive` is not enough: curl holds a body over roughly 1 KB
+    /// behind `Expect: 100-continue`, so the first read returns headers alone —
+    /// and those already end in `\r\n\r\n`, so they parse as a complete
+    /// request with an empty body. Every `Stop` event carrying a long assistant
+    /// message was lost that way.
+    ///
+    /// Runs on `queue` (the connection was started on it).
+    private func receive(on connection: NWConnection, into buffer: HTTPRequestBuffer) {
+        connection.receive(minimumIncompleteLength: 1, maximumLength: Self.maxRequestBytes) { [weak self] data, _, isComplete, error in
+            guard let self else {
+                connection.cancel()
                 return
             }
 
-            self?.processHTTPRequest(data)
+            if let error {
+                AppLog.hooks.debug("Connection error: \(error.localizedDescription)")
+                self.respondAndClose(connection)
+                return
+            }
+
+            var buffer = buffer
+            if let data, !data.isEmpty {
+                buffer.append(data)
+            }
+
+            // Unblock a client that is waiting for permission to send its body.
+            if buffer.needsContinue {
+                buffer.didSendContinue = true
+                connection.send(
+                    content: Self.continueResponse,
+                    completion: .contentProcessed { _ in }
+                )
+            }
+
+            if buffer.isComplete {
+                self.processHTTPRequest(buffer.data)
+                self.respondAndClose(connection)
+                return
+            }
+
+            // The peer finished without completing the request, or is sending
+            // more than any hook event could plausibly be.
+            if isComplete || buffer.data.count >= Self.maxRequestBytes {
+                AppLog.hooks.warning("Incomplete hook request (\(buffer.data.count) bytes); dropping")
+                self.respondAndClose(connection)
+                return
+            }
+
+            self.receive(on: connection, into: buffer)
         }
+    }
+
+    private func respondAndClose(_ connection: NWConnection) {
+        let response = "HTTP/1.1 200 OK\r\nContent-Length: 0\r\nConnection: close\r\n\r\n"
+        connection.send(
+            content: Data(response.utf8),
+            contentContext: .finalMessage,
+            isComplete: true,
+            completion: .contentProcessed { _ in
+                connection.cancel()
+            }
+        )
     }
 
     /// Runs on `queue` (called from connection.receive callback).
