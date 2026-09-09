@@ -12,7 +12,31 @@ xcuserdata/
 
 # Build artifacts
 build/
+DerivedData/
+.tuist-cache/
 .serena/
+*.dmg
+*.pkg
+
+# Test and coverage output (tuist test --result-bundle-path, tests.yml)
+*.xcresult
+coverage.lcov
+coverage_report.json
+
+# Signing material — never commit. combine-cert-key.sh writes its output .p12
+# to a path you pass in, and the verify-*.sh examples take bare relative
+# filenames, so a copy-pasted invocation leaves these in the repository root.
+*.p12
+*.p8
+*.cer
+*.certSigningRequest
+*.pem
+*.mobileprovision
+*.provisionprofile
+*.keychain-db
+.env
+.env.*
 
 # Personal Claude Code settings (per-project, never commit)
 .claude/settings.local.json
+.claude/worktrees/
