@@ -407,16 +407,20 @@ away and replaced with a case index. (The index is not even the right one for
 the case that threw, which shows how little it means.) Same defect class as the
 audit's `HookInstaller.InstallerError` finding.
 
-### Also seen in passing
+### Retracted — the Keychain error was a test artefact
+
+An earlier draft of this report listed:
 
 ```
 [ERROR] [credentials] Keychain read of 'Claude Code-credentials' failed:
-        security exited 44 — security: SecKeychainSearchCreateFromAttributes:
-        One or more parameters passed to a function were not valid.
+        security exited 44 — SecKeychainSearchCreateFromAttributes …
 ```
 
-Repeatable, once per Claude probe cycle. The probe survives it, but a `security`
-invocation is being built with invalid arguments.
+It only occurs when the app is launched with `nohup` from a shell, which gives it
+no proper security session and therefore no login keychain in its search list.
+Relaunched through LaunchServices (`open -a`), the error does not appear at all.
+The exact command the app runs — `security find-generic-password -s "Claude
+Code-credentials" -w` — succeeds from a normal session. **Not a defect.**
 
 ---
 
