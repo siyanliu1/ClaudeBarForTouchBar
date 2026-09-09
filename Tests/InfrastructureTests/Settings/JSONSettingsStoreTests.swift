@@ -265,4 +265,53 @@ struct JSONSettingsStoreTests {
         let all = store.readAll()
         #expect(all.isEmpty)
     }
+
+    // MARK: - Corrupt File Protection
+
+    @Test
+    func `write refuses to replace a settings file that is not valid JSON`() throws {
+        // Given a hand-edited file with a trailing comma — enough to fail parsing
+        let corrupt = """
+        {
+            "app": { "themeMode": "cli", "showDailyUsageCards": true },
+        }
+        """
+        let (store, dir) = try makeStore(initialJSON: corrupt)
+        defer { cleanup(dir) }
+
+        // When any pane saves any setting
+        store.write(value: "dark", key: "app.themeMode")
+
+        // Then the user's file is left exactly as it was, rather than being
+        // replaced by a one-key dictionary built from an empty read
+        let onDisk = try String(contentsOf: dir.appendingPathComponent("settings.json"), encoding: .utf8)
+        #expect(onDisk == corrupt)
+    }
+
+    @Test
+    func `isUnreadable distinguishes a corrupt file from a missing one`() throws {
+        let (missing, missingDir) = try makeStore()
+        defer { cleanup(missingDir) }
+        #expect(missing.isUnreadable == false)
+
+        let (corrupt, corruptDir) = try makeStore(initialJSON: "{ not json")
+        defer { cleanup(corruptDir) }
+        #expect(corrupt.isUnreadable == true)
+
+        let (valid, validDir) = try makeStore(initialJSON: #"{ "app": { "themeMode": "cli" } }"#)
+        defer { cleanup(validDir) }
+        #expect(valid.isUnreadable == false)
+    }
+
+    @Test
+    func `write still creates the file when none exists`() throws {
+        // The corrupt-file guard must not break ordinary first-run saving.
+        let (store, dir) = try makeStore()
+        defer { cleanup(dir) }
+
+        store.write(value: "cli", key: "app.themeMode")
+
+        let result: String? = store.read(key: "app.themeMode")
+        #expect(result == "cli")
+    }
 }
