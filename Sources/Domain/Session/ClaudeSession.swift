@@ -38,6 +38,15 @@ public struct ClaudeSession: Sendable, Equatable, Identifiable {
     /// What the transcript says about the current turn, once it has been read.
     public private(set) var usage: SessionUsage?
 
+    /// Context size at the first transcript reading taken since the session
+    /// blocked on the user, or nil when no reading has been taken since.
+    ///
+    /// The reading that follows a block necessarily already contains the
+    /// assistant record that asked for permission — Claude Code writes it
+    /// before it asks — so that first reading proves nothing and only sets the
+    /// bar. Growth beyond it is real work.
+    public private(set) var awaitingInputBaselineTokens: Int?
+
     public init(
         id: String,
         cwd: String,
@@ -104,6 +113,7 @@ public struct ClaudeSession: Sendable, Equatable, Identifiable {
     public mutating func resume(prompt: String? = nil) {
         guard phase != .ended else { return }
         if let prompt { lastPrompt = prompt }
+        awaitingInputBaselineTokens = nil
         updatePhase()
     }
 
@@ -118,6 +128,7 @@ public struct ClaudeSession: Sendable, Equatable, Identifiable {
         stoppedAt = nil
         pendingPrompt = nil
         activeSubagentCount = 0
+        awaitingInputBaselineTokens = nil
         phase = .active
         lastEventAt = date
     }
@@ -129,6 +140,27 @@ public struct ClaudeSession: Sendable, Equatable, Identifiable {
         phase = .awaitingInput
         pendingPrompt = prompt
         stoppedAt = nil
+        awaitingInputBaselineTokens = nil
+    }
+
+    /// Records a transcript reading taken while blocked on the user, resuming
+    /// the session once the transcript grows past the reading that followed the
+    /// block.
+    ///
+    /// Granting a permission fires no hook — PreToolUse is deliberately not
+    /// registered — so transcript growth is the only cue that Claude is working
+    /// again. Comparing against the *stored* usage instead cancelled the block
+    /// almost the moment it appeared, because the tool-use record that caused
+    /// it is newer than the last stored reading.
+    public mutating func noteContextWhileAwaitingInput(_ contextTokens: Int) {
+        guard phase == .awaitingInput else { return }
+        guard let baseline = awaitingInputBaselineTokens else {
+            awaitingInputBaselineTokens = contextTokens
+            return
+        }
+        if contextTokens > baseline {
+            resume()
+        }
     }
 
     /// Records a task completion
