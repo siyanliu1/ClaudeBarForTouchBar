@@ -39,14 +39,21 @@ public final class HookHTTPServer: @unchecked Sendable {
             }
         }
 
-        // Try default port first, fall back to auto-assign
-        let port: NWEndpoint.Port
-        if let preferredPort = NWEndpoint.Port(rawValue: defaultPort) {
-            port = preferredPort
-        } else {
-            port = .any
-        }
+        let preferred = NWEndpoint.Port(rawValue: defaultPort) ?? .any
+        try startListener(on: preferred, canFallBack: preferred != .any)
 
+        return stream
+    }
+
+    /// Brings a listener up on `port`.
+    ///
+    /// When the port is already taken — a second copy of ClaudeBar, a leftover
+    /// listener, or a toggle off-then-on that raced the release — retry once on
+    /// an OS-assigned port instead of dying silently. The hook script reads the
+    /// real port back out of the discovery file, so any port works. Previously
+    /// a failed bind only logged: the toggle stayed on, the pane still said
+    /// "installed", and no session ever appeared again.
+    private func startListener(on port: NWEndpoint.Port, canFallBack: Bool) throws {
         let parameters = NWParameters.tcp
         parameters.requiredLocalEndpoint = NWEndpoint.hostPort(host: .ipv4(.loopback), port: port)
 
@@ -65,7 +72,21 @@ public final class HookHTTPServer: @unchecked Sendable {
                 }
             case .failed(let error):
                 AppLog.hooks.error("Hook HTTP server failed: \(error.localizedDescription)")
-                self.continuation?.finish()
+                listener.cancel()
+                if self.listener === listener {
+                    self.listener = nil
+                }
+                guard canFallBack else {
+                    self.continuation?.finish()
+                    return
+                }
+                AppLog.hooks.warning("Port \(port.rawValue) unavailable; retrying on an OS-assigned port")
+                do {
+                    try self.startListener(on: .any, canFallBack: false)
+                } catch {
+                    AppLog.hooks.error("Hook HTTP server could not start: \(error.localizedDescription)")
+                    self.continuation?.finish()
+                }
             default:
                 break
             }
@@ -78,8 +99,6 @@ public final class HookHTTPServer: @unchecked Sendable {
 
         listener.start(queue: queue)
         queue.async { self.listener = listener }
-
-        return stream
     }
 
     /// Stops the HTTP server and cleans up.
