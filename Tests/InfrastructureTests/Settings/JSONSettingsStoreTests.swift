@@ -278,10 +278,11 @@ struct JSONSettingsStoreTests {
 
     @Test
     func `write refuses to replace a settings file that is not valid JSON`() throws {
-        // Given a hand-edited file with a trailing comma — enough to fail parsing
+        // Given a hand-edited file left unbalanced. Not a trailing comma:
+        // JSONSerialization on macOS 26 accepts those.
         let corrupt = """
         {
-            "app": { "themeMode": "cli", "showDailyUsageCards": true },
+            "app": { "themeMode": "cli", "showDailyUsageCards": true
         }
         """
         let (store, dir) = try makeStore(initialJSON: corrupt)

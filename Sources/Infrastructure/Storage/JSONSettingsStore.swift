@@ -59,7 +59,7 @@ public final class JSONSettingsStore: @unchecked Sendable {
 
     /// Whether the settings file exists but cannot be parsed.
     ///
-    /// A hand-edit that leaves a trailing comma is enough. Reads fall back to
+    /// A hand-edit that leaves a brace unbalanced is enough. Reads fall back to
     /// their defaults in that state, which makes the app look freshly
     /// installed; without this distinction the next write would then persist
     /// that empty state over the real file.
