@@ -212,14 +212,22 @@ struct JSONSettingsStoreTests {
     }
 
     @Test
-    func `write to malformed file replaces with valid JSON`() throws {
+    func `write leaves a malformed file alone rather than replacing it`() throws {
+        // This used to assert the opposite — that the write went through and
+        // replaced the file. That is the data loss: reads of a file we cannot
+        // parse fall back to defaults, so the write persisted an empty
+        // dictionary plus the one key being set, over settings the user still
+        // had. A file we cannot read is the one file we must not overwrite.
         let (store, dir) = try makeStore(initialJSON: "broken")
         defer { cleanup(dir) }
 
         store.write(value: "fixed", key: "status")
 
         let result: String? = store.read(key: "status")
-        #expect(result == "fixed")
+        #expect(result == nil)
+
+        let onDisk = try String(contentsOf: dir.appendingPathComponent("settings.json"), encoding: .utf8)
+        #expect(onDisk == "broken")
     }
 
     @Test
@@ -278,14 +286,17 @@ struct JSONSettingsStoreTests {
         """
         let (store, dir) = try makeStore(initialJSON: corrupt)
         defer { cleanup(dir) }
+        let fileURL = dir.appendingPathComponent("settings.json")
+        let before = try String(contentsOf: fileURL, encoding: .utf8)
 
         // When any pane saves any setting
         store.write(value: "dark", key: "app.themeMode")
 
-        // Then the user's file is left exactly as it was, rather than being
+        // Then the user's file is byte-for-byte what it was, rather than being
         // replaced by a one-key dictionary built from an empty read
-        let onDisk = try String(contentsOf: dir.appendingPathComponent("settings.json"), encoding: .utf8)
-        #expect(onDisk == corrupt)
+        let after = try String(contentsOf: fileURL, encoding: .utf8)
+        #expect(after == before)
+        #expect(after.contains("showDailyUsageCards"))
     }
 
     @Test

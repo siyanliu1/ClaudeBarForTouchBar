@@ -58,14 +58,22 @@ struct HTTPRequestBuffer {
         headerText != nil && expectsContinue && !didSendContinue && !isComplete
     }
 
+    /// Looks a header up by its lowercased name.
+    ///
+    /// Plain Foundation string APIs throughout: `split(separator:)` with a
+    /// literal is overloaded three ways (Character, Collection, RegexComponent)
+    /// and picked one that matched nothing here, which silently made every
+    /// header invisible.
     private func header(named name: String) -> String? {
         guard let headerText else { return nil }
-        for rawLine in headerText.split(separator: "\n") {
-            let line = rawLine.trimmingCharacters(in: .whitespacesAndNewlines)
-            guard let colon = line.firstIndex(of: ":") else { continue }
-            let key = line[line.startIndex..<colon].trimmingCharacters(in: .whitespacesAndNewlines)
-            guard key.lowercased() == name else { continue }
-            return line[line.index(after: colon)...].trimmingCharacters(in: .whitespacesAndNewlines)
+        for line in headerText.components(separatedBy: "\r\n") {
+            guard let colon = line.range(of: ":") else { continue }
+            let key = String(line[line.startIndex..<colon.lowerBound])
+                .trimmingCharacters(in: .whitespaces)
+                .lowercased()
+            guard key == name else { continue }
+            return String(line[colon.upperBound...])
+                .trimmingCharacters(in: .whitespaces)
         }
         return nil
     }

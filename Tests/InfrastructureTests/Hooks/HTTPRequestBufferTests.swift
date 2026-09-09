@@ -110,6 +110,18 @@ struct HTTPRequestBufferTests {
     // MARK: - Header parsing
 
     @Test
+    func `the header block is exactly what precedes the blank line`() {
+        // Pinned deliberately: when header lookup silently returned nil for
+        // everything, this is the assertion that would have said whether the
+        // block itself was wrong or only the parsing of it.
+        var buffer = HTTPRequestBuffer()
+        buffer.append(Data(headers(contentLength: 44).utf8))
+
+        #expect(buffer.headerText == "POST /hook HTTP/1.1\r\nHost: localhost:19847\r\nContent-Type: application/json\r\nContent-Length: 44")
+        #expect(buffer.contentLength == 44)
+    }
+
+    @Test
     func `content length is read case-insensitively and ignores surrounding space`() {
         var buffer = HTTPRequestBuffer()
         buffer.append(Data("POST /hook HTTP/1.1\r\ncontent-length:   17  \r\n\r\n".utf8))
