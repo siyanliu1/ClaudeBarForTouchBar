@@ -230,9 +230,20 @@ guard sees exactly that mismatch and refuses the `/cost` fallback:
         stripe_subscription account — not falling back to /cost
 ```
 
-That is the guard doing its job. The remedy is `claude login`, which is what the
-app's own message says. The Touch Bar's `Claude –/–/–` is the honest rendering
-of it.
+That is the guard doing its job, but it was reasoning from a rendered screen
+when the answer was sitting in the Keychain. **Fixed in `531ab64` and `26b6639`**
+— the probe now asks whether the stored session is still alive and reports
+"Session expired. Run `claude login` in terminal to log in again." Verified on
+this machine: the log line is `Claude session expired beyond refresh`, and the
+popover renders the full sentence.
+
+Finding that fix took a second pass, because being logged out does not remove
+the credentials — it **blanks** them. The Keychain item survives with
+`accessToken` and `refreshToken` both `""`, `expiresAt: 0`,
+`refreshTokenExpiresAt` in the past, and `subscriptionType: max` intact.
+`loadFromKeychain` discarded that at `guard !accessToken.isEmpty else { return nil }`,
+the one nil path in the function with no log line — so "logged out" and "never
+configured" were indistinguishable to every caller.
 
 Two genuine defects were found alongside it:
 
