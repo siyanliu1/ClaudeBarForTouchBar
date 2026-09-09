@@ -556,4 +556,70 @@ struct ClaudeCredentialLoaderTests {
         #expect(result?.oauth.refreshTokenExpiresAt == 1_787_941_267_825)
     }
 
+
+    // MARK: - A Blanked Session
+
+    /// What being logged out actually looks like on this platform: `claude`
+    /// leaves the Keychain item in place and blanks both tokens, keeping the
+    /// timestamps. That is not "never configured", and the difference is the
+    /// whole message the user gets.
+    @Test
+    func `loadCredentials still refuses a session whose tokens were blanked`() throws {
+        let tempDir = try makeTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+
+        try createCredentialsFile(at: tempDir, accessToken: "", refreshToken: "", expiresAt: 0)
+
+        let loader = ClaudeCredentialLoader(homeDirectory: tempDir.path, useKeychain: false, environment: [:])
+
+        #expect(loader.loadCredentials() == nil)
+    }
+
+    @Test
+    func `loadStoredSession reports a blanked session that loadCredentials hides`() throws {
+        let tempDir = try makeTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+
+        let aDayAgo = Date().addingTimeInterval(-86_400).timeIntervalSince1970 * 1000
+        try createCredentialsFile(
+            at: tempDir, accessToken: "", refreshToken: "",
+            expiresAt: 0, refreshTokenExpiresAt: aDayAgo, subscriptionType: "max"
+        )
+
+        let loader = ClaudeCredentialLoader(homeDirectory: tempDir.path, useKeychain: false, environment: [:])
+        let stored = loader.loadStoredSession()
+
+        #expect(stored != nil)
+        #expect(stored?.oauth.subscriptionType == "max")
+        #expect(loader.isBeyondRefresh(stored!.oauth) == true)
+    }
+
+    @Test
+    func `isBeyondRefresh is true when both tokens are blank even with no timestamps`() {
+        let loader = ClaudeCredentialLoader(homeDirectory: "/nonexistent", useKeychain: false, environment: [:])
+        let blanked = ClaudeOAuthCredentials(accessToken: "", refreshToken: "")
+
+        #expect(loader.isBeyondRefresh(blanked) == true)
+    }
+
+    @Test
+    func `loadCredentials still prefers the keychain when the file holds a blanked session`() throws {
+        // The old code returned nil from the file read and fell through to the
+        // Keychain; surfacing blanked sessions must not change that.
+        let tempDir = try makeTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+
+        try createCredentialsFile(at: tempDir, accessToken: "", refreshToken: "")
+
+        let loader = ClaudeCredentialLoader(
+            homeDirectory: tempDir.path,
+            useKeychain: false,
+            environment: ["CLAUDE_CODE_OAUTH_TOKEN": "env-token"]
+        )
+        let result = loader.loadCredentials()
+
+        #expect(result?.source == .environment)
+        #expect(result?.oauth.accessToken == "env-token")
+    }
+
 }

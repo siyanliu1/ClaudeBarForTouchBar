@@ -27,6 +27,16 @@ public struct ClaudeOAuthCredentials: Sendable, Equatable {
     }
 }
 
+extension ClaudeCredentialLoader {
+    /// A loader that finds nothing, anywhere. The parsing seam defaults to this
+    /// so a test never reads the credentials of whatever machine runs it.
+    public static let findsNothing = ClaudeCredentialLoader(
+        homeDirectory: "/var/empty",
+        useKeychain: false,
+        environment: [:]
+    )
+}
+
 /// Source of loaded credentials.
 public enum CredentialSource: Sendable, Equatable {
     case environment
@@ -146,14 +156,11 @@ public struct ClaudeCredentialLoader: Sendable {
     /// This ensures quota monitoring uses full-scope credentials when available,
     /// while still falling back to the env var token if nothing else exists.
     public func loadCredentials() -> ClaudeCredentialResult? {
-        // Try file first (full-scope OAuth from `claude login`)
-        if let fileResult = loadFromFile() {
-            return fileResult
-        }
-
-        // Keychain (if enabled)
-        if useKeychain, let keychainResult = loadFromKeychain() {
-            return keychainResult
+        // Only a session there is something to authenticate with. Callers use
+        // this to decide "is Claude configured at all", so a blanked session
+        // must keep reading as nil here.
+        if let stored = loadStoredSession(), !stored.oauth.accessToken.isEmpty {
+            return stored
         }
 
         // Fallback to environment variable (setup-token, inference-only scope)
@@ -162,6 +169,30 @@ public struct ClaudeCredentialLoader: Sendable {
         }
 
         return nil
+    }
+
+    /// The stored session exactly as it sits on disk — including the shape a
+    /// dead one leaves behind, where the Keychain item survives with both
+    /// tokens blanked and only the timestamps and plan left.
+    ///
+    /// ``loadCredentials()`` deliberately hides that, because there is nothing
+    /// there to authenticate with. This answers the different question of what
+    /// the machine *says* about the session, which is how "you are logged out"
+    /// can be told apart from "you never set Claude up" — two states that need
+    /// very different things said to the user.
+    public func loadStoredSession() -> ClaudeCredentialResult? {
+        let fileResult = loadFromFile()
+        if let fileResult, !fileResult.oauth.accessToken.isEmpty {
+            return fileResult
+        }
+
+        let keychainResult = useKeychain ? loadFromKeychain() : nil
+        if let keychainResult, !keychainResult.oauth.accessToken.isEmpty {
+            return keychainResult
+        }
+
+        // Neither is usable; report whichever actually exists.
+        return fileResult ?? keychainResult
     }
 
     /// Checks if the token needs to be refreshed (expired or within 5 minutes of expiry).
@@ -183,6 +214,12 @@ public struct ClaudeCredentialLoader: Sendable {
     /// refreshing — because being wrong there costs a round trip, not a lie.
     public func isBeyondRefresh(_ oauth: ClaudeOAuthCredentials) -> Bool {
         let nowMs = Date().timeIntervalSince1970 * 1000
+
+        // Both tokens blanked is the state `claude` leaves behind when a session
+        // dies. No timestamp needed to know there is nothing left to refresh.
+        if oauth.accessToken.isEmpty, oauth.refreshToken?.isEmpty ?? true {
+            return true
+        }
 
         // The access token has to be provably dead before anything else matters.
         guard let expiresAt = oauth.expiresAt, nowMs >= expiresAt else { return false }
@@ -267,8 +304,10 @@ public struct ClaudeCredentialLoader: Sendable {
                 return nil
             }
 
+            // A blank token is kept rather than dropped: it is what a logged-out
+            // session looks like on disk, and `loadCredentials` filters it out
+            // for callers who need something to authenticate with.
             let accessToken = rawAccessToken.trimmingCharacters(in: .whitespacesAndNewlines)
-            guard !accessToken.isEmpty else { return nil }
 
             let oauth = ClaudeOAuthCredentials(
                 accessToken: accessToken,
@@ -349,8 +388,10 @@ public struct ClaudeCredentialLoader: Sendable {
                 return nil
             }
 
+            // A blank token is kept rather than dropped: it is what a logged-out
+            // session looks like on disk, and `loadCredentials` filters it out
+            // for callers who need something to authenticate with.
             let accessToken = rawAccessToken.trimmingCharacters(in: .whitespacesAndNewlines)
-            guard !accessToken.isEmpty else { return nil }
 
             let oauth = ClaudeOAuthCredentials(
                 accessToken: accessToken,

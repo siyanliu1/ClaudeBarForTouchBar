@@ -176,8 +176,15 @@ public final class ClaudeUsageProbe: UsageProbe, @unchecked Sendable {
 
     /// Parses Claude CLI /usage output into a UsageSnapshot (for testing).
     /// Uses a no-op resolver by default so tests don't read real `~/.claude.json`.
-    public static func parse(_ text: String, accountInfoResolver: any AccountInfoResolving = NoOpAccountInfoResolver()) throws -> UsageSnapshot {
-        let probe = ClaudeUsageProbe(accountInfoResolver: accountInfoResolver)
+    public static func parse(
+        _ text: String,
+        accountInfoResolver: any AccountInfoResolving = NoOpAccountInfoResolver(),
+        credentialLoader: ClaudeCredentialLoader = .findsNothing
+    ) throws -> UsageSnapshot {
+        let probe = ClaudeUsageProbe(
+            accountInfoResolver: accountInfoResolver,
+            credentialLoader: credentialLoader
+        )
         return try probe.parseClaudeOutput(text)
     }
 
@@ -349,8 +356,8 @@ public final class ClaudeUsageProbe: UsageProbe, @unchecked Sendable {
                     // login we hold still alive? An expired session renders
                     // exactly this panel, and "log in again" is something the
                     // user can act on — the alternative message is not.
-                    if let credentials = credentialLoader.loadCredentials(),
-                       credentialLoader.isBeyondRefresh(credentials.oauth) {
+                    if let session = credentialLoader.loadStoredSession(),
+                       credentialLoader.isBeyondRefresh(session.oauth) {
                         AppLog.probes.error(
                             "Claude session expired beyond refresh; /usage fell back to the API billing panel"
                         )
