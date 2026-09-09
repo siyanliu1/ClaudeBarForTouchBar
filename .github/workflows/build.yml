@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [main, develop]
 
+# macOS runners are slow; a superseded push should not keep one busy.
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
