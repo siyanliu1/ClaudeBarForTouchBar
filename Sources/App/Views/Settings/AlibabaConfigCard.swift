@@ -161,9 +161,13 @@ struct AlibabaConfigCard: View {
                                 )
                         )
                         .onChange(of: alibabaManualCookieInput) { _, newValue in
-                            if !newValue.isEmpty {
-                                settings.alibaba.saveAlibabaManualCookie(newValue)
-                            }
+                            // Emptying the field has to clear the stored cookie.
+                            // Skipping the write on empty meant a cleared field
+                            // kept authenticating with the old cookie, and the
+                            // old value reappeared on the next visit.
+                            settings.alibaba.saveAlibabaManualCookie(
+                                newValue.trimmingCharacters(in: .whitespacesAndNewlines)
+                            )
                         }
 
                     Text("Copy the cookie from your browser's developer tools after logging in to Alibaba Cloud.")
@@ -312,11 +316,20 @@ struct AlibabaConfigCard: View {
         }
 
         AppLog.credentials.info("Testing Alibaba connection via provider refresh")
-        await monitor.refresh(providerId: "alibaba")
+        // refreshInteractively, not refresh: the latter skips a provider that
+        // reports itself unavailable, so with no credentials configured the
+        // probe never ran, lastError stayed nil — and this reported success.
+        await monitor.refreshInteractively(providerId: "alibaba")
 
-        if let error = monitor.provider(for: "alibaba")?.lastError {
+        let provider = monitor.provider(for: "alibaba")
+        if let error = provider?.lastError {
             AppLog.credentials.error("Alibaba connection test failed: \(error.localizedDescription)")
             alibabaTestResult = "Failed: \(error.localizedDescription)"
+        } else if provider?.snapshot == nil {
+            // No error and no data means the probe did not actually run.
+            // Success has to mean usage came back, not merely "nothing threw".
+            AppLog.credentials.error("Alibaba connection test returned no usage data")
+            alibabaTestResult = "Failed: no usage data returned — check the settings above"
         } else {
             AppLog.credentials.info("Alibaba connection test succeeded")
             alibabaTestResult = "Success: Connection verified"

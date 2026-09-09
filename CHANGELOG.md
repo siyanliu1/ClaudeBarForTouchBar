@@ -22,6 +22,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The `Notification` hook is now installed, so "Needs You" is finally reachable: until now the phase existed in the domain and was drawn by the notch, but no hook ever produced it. Only notifications that actually block a turn count — a permission prompt stops the session, going idle or finishing a login does not. (#1)
 - `JSONSettingsRepository` now conforms to `MultiAccountSettingsRepository`, persisting per-provider accounts under `providers.{id}.accounts` and the active account under `providers.{id}.activeAccountId`. Nothing changes for existing installs: a provider with no `accounts` key reads back an empty list, which is the single-account path, so no migration runs. Removing the active account clears the active pointer rather than leaving it dangling at an account that is gone. (#164)
 
+### Fixed
+- Quota alerts work on a default install. Notifications are posted from the monitor's refresh path, but the dropdown probed providers directly and never went through it — and background refresh is off by default, so the dropdown was the only refresh most people ever ran. ClaudeBar asked for notification permission on first open and could then never post a single quota alert, however far a quota fell.
+- A settings file ClaudeBar cannot parse is no longer replaced. A hand-edit that left a trailing comma made every setting read back as its default, so the app looked freshly installed — and the next toggle you touched wrote that empty state over the file. Saving is now refused until the file is fixed, and the log says which file it is.
+- Claude Code hook events larger than about 1 KB are no longer dropped. `curl` holds a body that size back until the server says it may send, and ClaudeBar never answered, then replied and closed the connection after reading only the headers. Every `Stop` event carrying a long reply was lost this way, so turns appeared never to end.
+- The hook server retries on another port when its usual one is taken. A busy port — a second copy of ClaudeBar, or switching hooks off and straight back on — used to leave the toggle on and the pane still reporting hooks as installed, while no session ever appeared again.
+- "Needs you" stays on screen. Granting a permission fires no hook, so a blocked session is only known to be working again by its transcript growing — but Claude Code writes the record that caused the block before it asks, so the very next read cancelled the state within a fraction of a second of it appearing.
+- A Claude Code session killed with its terminal window no longer shows as active forever. The retirement pass was only ticked by the Touch Bar board, which is off by default, so nothing cleared the menu-bar glyph or the popover card until the app was relaunched.
+- Turning the menu-bar percentage and duration readouts off actually removes the number. The last value stayed frozen in the menu bar until the next launch, because "switched off" and "momentarily missing" looked the same to the code that bridges a gap in the data.
+- "Save & Test Connection" no longer reports success when nothing was tested. With no credentials configured the probe was skipped entirely, leaving no error behind — which the Copilot, MiniMax and Alibaba cards read as a verified connection. Success now requires usage data to have actually come back.
+- Clearing the Claude API budget field clears the budget. Emptying it left the previous threshold quietly in force behind a blank field.
+- Clearing the Alibaba manual cookie field clears the cookie. Emptying it kept authenticating with the old one, which then reappeared the next time the card was opened.
+- The Appearance grid updates when a theme is imported or deleted, instead of showing the list it first drew. Deleting the theme currently in use also falls back to System rather than leaving the setting pointing at a theme that no longer exists.
+- Alibaba has its own colour and icon instead of rendering as a generic purple question mark in the provider list, the popover pill and the popover header.
+
 ---
 
 ## [0.4.88] - 2026-09-02

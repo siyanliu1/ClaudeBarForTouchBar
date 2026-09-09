@@ -329,7 +329,13 @@ struct ClaudeConfigCard: View {
                                 )
                         )
                         .onChange(of: budgetInput) { _, newValue in
-                            if let value = Decimal(string: newValue) {
+                            // Emptying the field has to clear the budget. Only
+                            // writing on a successful parse left the previous
+                            // threshold quietly in force behind a blank field.
+                            let trimmed = newValue.trimmingCharacters(in: .whitespaces)
+                            if trimmed.isEmpty {
+                                settings.claudeApiBudget = 0
+                            } else if let value = Decimal(string: trimmed) {
                                 settings.claudeApiBudget = value
                             }
                         }
