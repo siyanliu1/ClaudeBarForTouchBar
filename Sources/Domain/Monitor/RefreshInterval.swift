@@ -5,8 +5,8 @@ import Foundation
 /// "Off" means no background refresh — the bar updates only when the dropdown
 /// opens (today's behaviour). The other cases map onto a 60 / 300 / 600 /
 /// 900-second poll. There is intentionally no sub-minute option: 1 minute is a
-/// hard floor to keep energy use low (issue #67). 10 minutes is the default
-/// (issue #204): frequent enough to stay glanceable, cheap enough to stay cool.
+/// hard floor to keep energy use low (issue #67), and it is also the default:
+/// the Touch Bar board is glanced at constantly, so it polls at the floor.
 public enum RefreshInterval: String, Sendable, Equatable, CaseIterable {
     case off
     case oneMinute
