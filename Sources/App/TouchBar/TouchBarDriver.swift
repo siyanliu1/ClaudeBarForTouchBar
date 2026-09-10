@@ -168,6 +168,7 @@ final class TouchBarDriver {
                     settings.menuBarPercentageProviderId,
                     settings.menuBarPercentageQuotaKey
                 ),
+                mode: settings.usageDisplayMode,
                 hooksEnabled: settings.hook.isHookEnabled(),
                 // monitor.isRefreshing is true while ANY provider syncs, which
                 // would dim these numbers because Bedrock is busy.

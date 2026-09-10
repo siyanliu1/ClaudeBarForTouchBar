@@ -41,6 +41,7 @@ struct TouchBarBoardTests {
         sessions: [ClaudeSession] = [],
         snapshots: [String: UsageSnapshot] = [:],
         traySelection: (providerId: String, quotaKey: String) = ("claude", "session"),
+        mode: UsageDisplayMode = .remaining,
         hooksEnabled: Bool = true,
         isRefreshing: Bool = false
     ) -> TouchBarBoard {
@@ -48,6 +49,7 @@ struct TouchBarBoardTests {
             sessions: sessions,
             snapshot: { snapshots[$0] },
             traySelection: traySelection,
+            mode: mode,
             hooksEnabled: hooksEnabled,
             isRefreshing: isRefreshing,
             now: now
@@ -198,6 +200,34 @@ struct TouchBarBoardTests {
         ])
 
         #expect(board.claude.map(\.status) == [.healthy, .warning, .critical])
+    }
+
+    @Test
+    func `in used mode the numbers flip but each keeps the status of what is left`() {
+        let board = build(
+            snapshots: [
+                "claude": snapshot("claude", [("session", 90), ("weekly", 30), ("model:fable", 5)]),
+                "codex": snapshot("codex", [("session", 80), ("weekly", 45)]),
+            ],
+            traySelection: ("codex", "weekly"),
+            mode: .used
+        )
+
+        #expect(board.claude.map(\.percent) == [10, 70, 95])
+        #expect(board.claude.map(\.status) == [.healthy, .warning, .critical])
+        #expect(board.codex.map(\.percent) == [20, 55])
+        #expect(board.tray.quota.percent == 55)
+        #expect(board.tray.quota.status == .warning)
+    }
+
+    @Test
+    func `pace mode reads as remaining, the same as the menu bar`() {
+        let board = build(
+            snapshots: ["claude": snapshot("claude", [("session", 90)])],
+            mode: .pace
+        )
+
+        #expect(board.claude[0].percent == 90)
     }
 
     // MARK: - Tray
