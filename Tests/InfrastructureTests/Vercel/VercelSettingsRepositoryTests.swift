@@ -31,7 +31,7 @@ struct VercelSettingsRepositoryTests {
         #expect(repository.getVercelApiKey() == "vck_test")
         #expect(repository.hasVercelApiKey() == true)
         #expect(secureCredentials.get(forKey: CredentialKey.vercelApiKey) == "vck_test")
-        #expect(defaults.object(forKey: "com.claudebar.credentials.vercel-api-key") == nil)
+        #expect(defaults.object(forKey: "com.touchquota.credentials.vercel-api-key") == nil)
 
         #expect(repository.deleteVercelApiKey() == true)
         #expect(repository.getVercelApiKey() == nil)
@@ -69,7 +69,7 @@ struct VercelSettingsRepositoryTests {
         #expect(repository.getVercelApiKey() == "vck_test")
         #expect(repository.hasVercelApiKey() == true)
         #expect(secureCredentials.get(forKey: CredentialKey.vercelApiKey) == "vck_test")
-        #expect(credentials.object(forKey: "com.claudebar.credentials.vercel-api-key") == nil)
+        #expect(credentials.object(forKey: "com.touchquota.credentials.vercel-api-key") == nil)
 
         #expect(repository.deleteVercelApiKey() == true)
         #expect(repository.getVercelApiKey() == nil)
@@ -87,7 +87,7 @@ struct VercelSettingsRepositoryTests {
             defaults.removePersistentDomain(forName: suiteName)
             secureDefaults.removePersistentDomain(forName: secureSuiteName)
         }
-        defaults.set("legacy-key", forKey: "com.claudebar.credentials.vercel-api-key")
+        defaults.set("legacy-key", forKey: "com.touchquota.credentials.vercel-api-key")
         let repository = UserDefaultsProviderSettingsRepository(
             userDefaults: defaults,
             secureCredentials: secureCredentials
@@ -95,7 +95,7 @@ struct VercelSettingsRepositoryTests {
 
         #expect(repository.getVercelApiKey() == "legacy-key")
         #expect(secureCredentials.get(forKey: CredentialKey.vercelApiKey) == "legacy-key")
-        #expect(defaults.object(forKey: "com.claudebar.credentials.vercel-api-key") == nil)
+        #expect(defaults.object(forKey: "com.touchquota.credentials.vercel-api-key") == nil)
     }
 
     @Test
@@ -103,14 +103,14 @@ struct VercelSettingsRepositoryTests {
         let suiteName = "VercelFailedMigrationTests.\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suiteName)!
         defer { defaults.removePersistentDomain(forName: suiteName) }
-        defaults.set("legacy-key", forKey: "com.claudebar.credentials.vercel-api-key")
+        defaults.set("legacy-key", forKey: "com.touchquota.credentials.vercel-api-key")
         let repository = UserDefaultsProviderSettingsRepository(
             userDefaults: defaults,
             secureCredentials: FailingCredentialRepository()
         )
 
         #expect(repository.getVercelApiKey() == "legacy-key")
-        #expect(defaults.string(forKey: "com.claudebar.credentials.vercel-api-key") == "legacy-key")
+        #expect(defaults.string(forKey: "com.touchquota.credentials.vercel-api-key") == "legacy-key")
     }
 
     @Test
@@ -127,7 +127,7 @@ struct VercelSettingsRepositoryTests {
             credentials.removePersistentDomain(forName: suiteName)
             secureDefaults.removePersistentDomain(forName: secureSuiteName)
         }
-        credentials.set("legacy-key", forKey: "com.claudebar.credentials.vercel-api-key")
+        credentials.set("legacy-key", forKey: "com.touchquota.credentials.vercel-api-key")
         let repository = JSONSettingsRepository(
             store: JSONSettingsStore(fileURL: tempDirectory.appendingPathComponent("settings.json")),
             credentials: credentials,
@@ -136,7 +136,7 @@ struct VercelSettingsRepositoryTests {
 
         #expect(repository.getVercelApiKey() == "legacy-key")
         #expect(secureCredentials.get(forKey: CredentialKey.vercelApiKey) == "legacy-key")
-        #expect(credentials.object(forKey: "com.claudebar.credentials.vercel-api-key") == nil)
+        #expect(credentials.object(forKey: "com.touchquota.credentials.vercel-api-key") == nil)
     }
 
     @Test
@@ -149,7 +149,7 @@ struct VercelSettingsRepositoryTests {
             try? FileManager.default.removeItem(at: tempDirectory)
             credentials.removePersistentDomain(forName: suiteName)
         }
-        credentials.set("legacy-key", forKey: "com.claudebar.credentials.vercel-api-key")
+        credentials.set("legacy-key", forKey: "com.touchquota.credentials.vercel-api-key")
         let repository = JSONSettingsRepository(
             store: JSONSettingsStore(fileURL: tempDirectory.appendingPathComponent("settings.json")),
             credentials: credentials,
@@ -157,7 +157,7 @@ struct VercelSettingsRepositoryTests {
         )
 
         #expect(repository.getVercelApiKey() == "legacy-key")
-        #expect(credentials.string(forKey: "com.claudebar.credentials.vercel-api-key") == "legacy-key")
+        #expect(credentials.string(forKey: "com.touchquota.credentials.vercel-api-key") == "legacy-key")
     }
 
     @Test
@@ -170,7 +170,7 @@ struct VercelSettingsRepositoryTests {
             try? FileManager.default.removeItem(at: tempDirectory)
             credentials.removePersistentDomain(forName: suiteName)
         }
-        credentials.set("legacy-key", forKey: "com.claudebar.credentials.vercel-api-key")
+        credentials.set("legacy-key", forKey: "com.touchquota.credentials.vercel-api-key")
         let repository = JSONSettingsRepository(
             store: JSONSettingsStore(fileURL: tempDirectory.appendingPathComponent("settings.json")),
             credentials: credentials,
@@ -179,7 +179,7 @@ struct VercelSettingsRepositoryTests {
 
         repository.saveVercelApiKey("replacement-key")
 
-        #expect(credentials.string(forKey: "com.claudebar.credentials.vercel-api-key") == "legacy-key")
+        #expect(credentials.string(forKey: "com.touchquota.credentials.vercel-api-key") == "legacy-key")
     }
 
     @Test

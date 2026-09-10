@@ -1,6 +1,6 @@
 # Provider Icon Guide
 
-Create provider icons that match ClaudeBar's visual style.
+Create provider icons that match TouchQuota's visual style.
 
 ## Icon Specifications
 

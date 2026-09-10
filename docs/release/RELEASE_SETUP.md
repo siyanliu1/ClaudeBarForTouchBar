@@ -1,6 +1,6 @@
 # Release Setup Guide
 
-This guide explains how to set up the GitHub secrets required for automated releases of ClaudeBar.
+This guide explains how to set up the GitHub secrets required for automated releases of TouchQuota.
 
 ## Overview
 
@@ -286,7 +286,7 @@ The GitHub Actions workflow will automatically:
 
 ## Part 5: Beta Channel Updates
 
-ClaudeBar uses Sparkle's channel feature to support beta updates. Users can opt into beta releases via Settings.
+TouchQuota uses Sparkle's channel feature to support beta updates. Users can opt into beta releases via Settings.
 
 ### How Beta Channels Work
 
@@ -369,7 +369,7 @@ The following table documents all supported update scenarios:
 
 ## Part 6: Homebrew Cask (Automatic)
 
-ClaudeBar is available on [Homebrew Cask](https://formulae.brew.sh/cask/claudebar) and **updates automatically**.
+TouchQuota is available on [Homebrew Cask](https://formulae.brew.sh/cask/touchquota) and **updates automatically**.
 
 ### How It Works
 
@@ -387,10 +387,10 @@ After releasing a new version, you can check the cask status:
 
 ```bash
 # Check current Homebrew version
-brew info --cask claudebar
+brew info --cask touchquota
 
 # See the cask formula
-brew cat claudebar
+brew cat touchquota
 ```
 
 The Homebrew version typically updates within a few hours of a GitHub release.
@@ -401,7 +401,7 @@ In rare cases where the automatic update doesn't work:
 
 ```bash
 # Create a PR to update the cask
-brew bump-cask-pr claudebar
+brew bump-cask-pr touchquota
 ```
 
 Note: This will fail if BrewTestBot has already created a PR.
@@ -507,13 +507,13 @@ security find-identity -v -p codesigning
 
 ```bash
 # Check current Homebrew Cask version
-brew info --cask claudebar
+brew info --cask touchquota
 
 # Install from Homebrew
-brew install --cask claudebar
+brew install --cask touchquota
 
 # View cask formula
-brew cat claudebar
+brew cat touchquota
 ```
 
 ### Links
@@ -521,4 +521,4 @@ brew cat claudebar
 - [Apple Developer Certificates](https://developer.apple.com/account/resources/certificates)
 - [App Store Connect API Keys](https://appstoreconnect.apple.com/access/api)
 - [Apple Notarization Documentation](https://developer.apple.com/documentation/security/notarizing_macos_software_before_distribution)
-- [Homebrew Cask claudebar](https://formulae.brew.sh/cask/claudebar)
+- [Homebrew Cask touchquota](https://formulae.brew.sh/cask/touchquota)

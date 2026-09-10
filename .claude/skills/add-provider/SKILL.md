@@ -1,14 +1,14 @@
 ---
 name: add-provider
 description: |
-  Guide for adding new AI providers to ClaudeBar using TDD patterns. Use this skill when:
+  Guide for adding new AI providers to TouchQuota using TDD patterns. Use this skill when:
   (1) Adding a new AI assistant provider (like Antigravity, Cursor, etc.)
   (2) Creating a usage probe for a CLI tool or local API
   (3) Following TDD to implement provider integration
   (4) User asks "how do I add a new provider" or "create a provider for X"
 ---
 
-# Add Provider to ClaudeBar
+# Add Provider to TouchQuota
 
 Add new AI providers following established TDD patterns and architecture.
 
@@ -186,7 +186,7 @@ public final class {Provider}Provider: AIProvider, @unchecked Sendable {
 
 ### Phase 5: Register Provider
 
-Add to `Sources/App/ClaudeBarApp.swift`:
+Add to `Sources/App/TouchQuotaApp.swift`:
 
 ```swift
 let settingsRepository = JSONSettingsRepository.shared
@@ -330,7 +330,7 @@ See [references/provider-icon-guide.md](references/provider-icon-guide.md) for c
 - [ ] Probe behavior tests created and passing
 - [ ] Probe implementation complete
 - [ ] Provider class created
-- [ ] Provider registered in ClaudeBarApp
+- [ ] Provider registered in TouchQuotaApp
 - [ ] Visual identity added to Theme.swift (color, name, icons)
 - [ ] Provider icon SVG created with rounded rect background
 - [ ] Icon PNGs generated (64, 128, 192px)

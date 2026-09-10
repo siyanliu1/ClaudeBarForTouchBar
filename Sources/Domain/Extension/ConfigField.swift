@@ -2,7 +2,7 @@ import Foundation
 
 /// A configuration field declared in an extension manifest.
 /// Extension authors use these to define what settings their probe scripts need.
-/// Values are injected as environment variables (CLAUDEBAR_*) when probes execute.
+/// Values are injected as environment variables (TOUCHQUOTA_*) when probes execute.
 public struct ConfigField: Sendable, Equatable, Codable {
     public let id: String
     public let label: String
@@ -58,8 +58,8 @@ public struct ConfigField: Sendable, Equatable, Codable {
     }
 
     /// The environment variable name injected into probe scripts.
-    /// Converts the field id to CLAUDEBAR_UPPER_SNAKE_CASE.
-    /// Examples: "apiKey" → "CLAUDEBAR_API_KEY", "base-url" → "CLAUDEBAR_BASE_URL"
+    /// Converts the field id to TOUCHQUOTA_UPPER_SNAKE_CASE.
+    /// Examples: "apiKey" → "TOUCHQUOTA_API_KEY", "base-url" → "TOUCHQUOTA_BASE_URL"
     public var environmentVariableName: String {
         let snake = id
             .replacingOccurrences(of: "-", with: "_")
@@ -67,7 +67,7 @@ public struct ConfigField: Sendable, Equatable, Codable {
                 "\(match.output.1)_\(match.output.2)"
             }
             .uppercased()
-        return "CLAUDEBAR_\(snake)"
+        return "TOUCHQUOTA_\(snake)"
     }
 
     /// Returns the stored value if present, otherwise the default value.

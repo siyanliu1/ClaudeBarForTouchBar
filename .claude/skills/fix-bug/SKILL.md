@@ -1,14 +1,14 @@
 ---
 name: fix-bug
 description: |
-  Guide for fixing bugs in ClaudeBar following Chicago School TDD and rich domain design. Use this skill when:
+  Guide for fixing bugs in TouchQuota following Chicago School TDD and rich domain design. Use this skill when:
   (1) User reports a bug or unexpected behavior
   (2) Fixing a defect in existing functionality
   (3) User asks "fix this bug" or "this doesn't work correctly"
   (4) Correcting behavior that violates the user's mental model
 ---
 
-# Fix Bug in ClaudeBar
+# Fix Bug in TouchQuota
 
 Fix bugs using Chicago School TDD, root cause analysis, and rich domain design.
 

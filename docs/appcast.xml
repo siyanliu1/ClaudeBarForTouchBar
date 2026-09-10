@@ -1,23 +1,6 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
     <channel>
-        <title>ClaudeBar</title>
-        <item>
-            <title>0.2.2</title>
-            <pubDate>Thu, 26 Dec 2025 00:00:00 +0000</pubDate>
-            <sparkle:version>71</sparkle:version>
-            <sparkle:shortVersionString>0.2.2</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
-            <description><![CDATA[<h2>ClaudeBar 0.2.2</h2>
-<p><em>Released December 26, 2025</em></p>
-<h3>Added</h3>
-<ul>
-<li>Update Notification Badge: See a visual indicator on the settings button when a new version is available</li>
-<li>Version information display in the menu</li>
-</ul>
-<p><a href="https://github.com/tddworks/ClaudeBar/releases/tag/v0.2.2">View full release notes</a></p>
-]]></description>
-            <enclosure url="https://github.com/tddworks/ClaudeBar/releases/download/v0.2.2/ClaudeBar-0.2.2.zip" length="4004452" type="application/octet-stream" sparkle:edSignature="E2TdRGOyaRYF2IlmPR8GASp8WcuoH44z8PUf0wPiVgGIAws1D5zFxe4yug4FFht0iWdgzlPeyGjJiS3jImWfBg=="/>
-        </item>
+        <title>TouchQuota</title>
     </channel>
 </rss>

@@ -7,7 +7,7 @@
 
 set -euo pipefail
 
-BUNDLE_ID="${BUNDLE_ID:-com.tddworks.claudebar}"
+BUNDLE_ID="${BUNDLE_ID:-com.touchquota.app}"
 WORK_DIR=$(mktemp -d)
 trap 'rm -rf "$WORK_DIR"' EXIT
 

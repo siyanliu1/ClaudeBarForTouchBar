@@ -16,7 +16,7 @@ exported first. Switching it properly needs `sudo xcode-select -s`.
 
 ## Build and test baseline
 
-**First successful compile of the Touch Bar stack.** `ClaudeBarApp.swift`,
+**First successful compile of the Touch Bar stack.** `TouchQuotaApp.swift`,
 `GeneralPane.swift` and `StatusItemLabelDriver.swift` — the three files the
 implementation session listed as "nothing has compiled" — build clean.
 `ENABLE_TOUCHBAR` and `ENABLE_SPARKLE` are both set for Debug and Release.
@@ -72,7 +72,7 @@ grabs it at 2008 × 60 px (= 1004 × 30 pt) once awake, and needs no permission.
 The open question from the design spike — `DFRElementSetControlStripPresenceForIdentifier`
 returned false from an unbundled executable, and community notes said tray items
 need a real `.app` — **is settled: it appears.** Captured in the Control Strip
-between the `‹` chevron and the play button: a rounded ClaudeBar button with a
+between the `‹` chevron and the play button: a rounded TouchQuota button with a
 status dot and the Claude number (a `–` here, because the Claude probe fails on
 this machine — see below).
 
@@ -175,7 +175,7 @@ With port 19847 held by another process:
 [INFO]    Hook HTTP server listening on port 62995
 ```
 
-62995 was written to `~/.claude/claudebar-hook-port` and a POST to it was
+62995 was written to `~/.claude/touchquota-hook-port` and a POST to it was
 accepted — so the installed hook script, which reads that file, follows.
 
 ### The installer, exercised through the Settings toggle
@@ -217,7 +217,7 @@ that has forgotten everything and says nothing.
 
 **Codex works.** `plan type: plus`, Session 100 %, Weekly 100 %, in ~2 s.
 
-**Claude fails on this machine — and ClaudeBar's diagnosis is correct.** The
+**Claude fails on this machine — and TouchQuota's diagnosis is correct.** The
 CLI's OAuth session has expired (`claude -p` reports "OAuth session expired and
 could not be refreshed"). `/usage` therefore renders with a header of
 `Opus 5 (1M context) · API Usage Billing` and shows the Session cost panel
@@ -260,7 +260,7 @@ permanent block — but it costs 20 s per probe until it wins.
 **The raw TUI dump goes into the user-facing log at INFO.**
 `ClaudeUsageProbe.swift:95` writes the entire ANSI screen —
 `\[2G\[1mAccessing\[12Gworkspace:` and several thousand more bytes — to
-`~/Library/Logs/ClaudeBar/ClaudeBar.log` on **every** probe. Measured at ~7 KB
+`~/Library/Logs/TouchQuota/TouchQuota.log` on **every** probe. Measured at ~7 KB
 per probe, which rotates the 5 MB log in roughly five days at the default 10-minute
 interval, and makes the log unreadable in the meantime. The same content is
 already logged two lines later at `.debug`, which is OSLog-only. The `.info` call
@@ -271,21 +271,21 @@ should be `.debug`.
 ## Diagnostics and logging
 
 **The documented OSLog predicate matches nothing.** `AppLogger.swift:99` uses
-`Bundle.main.bundleIdentifier`, which is `com.tddworks.claudebar` — lowercase.
+`Bundle.main.bundleIdentifier`, which is `com.touchquota.app` — lowercase.
 `CLAUDE.md` and `AppLogger`'s own doc comment both tell you to filter on
-`subsystem == "com.tddworks.ClaudeBar"`, and the fallback string in the code is
+`subsystem == "com.touchquota.app"`, and the fallback string in the code is
 the same wrong spelling. Every documented `log show` / `log stream` / Console.app
 filter in the repo returns nothing.
 
 ```bash
 # what the docs say (returns nothing)
-log show --predicate 'subsystem == "com.tddworks.ClaudeBar"' --info --debug --last 1h
+log show --predicate 'subsystem == "com.touchquota.app"' --info --debug --last 1h
 # what actually works
-log show --predicate 'subsystem == "com.tddworks.claudebar"' --info --debug --last 1h
+log show --predicate 'subsystem == "com.touchquota.app"' --info --debug --last 1h
 ```
 
 **Unit tests write into the user's real log file.** Running the suite fills
-`~/Library/Logs/ClaudeBar/ClaudeBar.log` with fixture output — "Claude Code
+`~/Library/Logs/TouchQuota/TouchQuota.log` with fixture output — "Claude Code
 v1.0.27", "Organization: Acme Corp", "Failed to send alert: … (test error 1.)".
 The file is a user-facing artefact reachable from Settings → Open Logs Folder.
 
@@ -315,7 +315,7 @@ A second pass, driven through the app's own UI.
 ### Finding the menu bar item is harder than it should be
 
 `MenuBarExtra`'s label is deliberately `Color.clear.frame(width: 1, height: 1)`
-(`ClaudeBarApp.swift:314`) — every menu-bar pixel is drawn by
+(`TouchQuotaApp.swift:314`) — every menu-bar pixel is drawn by
 `StatusItemLabelDriver` into `statusItem.button.image`. The item does work: it
 renders the configured provider's number (a green `100%` for Codex).
 
@@ -375,7 +375,7 @@ menu bar, and both of its states work:
   was about the session state specifically, which was not re-tested here.)
 
 **Observed once: the notch window swallowed a menu-bar click.** A click aimed at
-ClaudeBar's own status item landed on the notch panel instead and expanded it.
+TouchQuota's own status item landed on the notch panel instead and expanded it.
 The notch window is 900 × 420 pt pinned at `y = 0`, so it covers the middle of
 the menu bar; this is the concrete instance of the interactive-rect concern the
 audit raised at `NotchWindowController.swift:111`.
@@ -392,7 +392,7 @@ It does not. Driven through the real `.fileImporter` panel with a complete
 
 - the guard passed, the theme imported, and `QAFull` appeared as a sixth theme
   card **immediately**;
-- it persisted to `~/.claudebar/themes/qafull.json`;
+- it persisted to `~/.touchquota/themes/qafull.json`;
 - selecting it applied the palette live across the Settings window and wrote
   `themeMode = imported-qafull`.
 
@@ -438,7 +438,7 @@ Code-credentials" -w` — succeeds from a normal session. **Not a defect.**
 ## Method, and two deviations worth disclosing
 
 Observation channels: `screencapture -b` for the Touch Bar (no permission
-needed), the file log, OSLog at the *correct* subsystem, `~/.claudebar/settings.json`,
+needed), the file log, OSLog at the *correct* subsystem, `~/.touchquota/settings.json`,
 `lsof`, curl against the live hook server, synthetic transcript JSONL, and the
 accessibility tree of the Settings window.
 

@@ -24,7 +24,7 @@ Sources/Domain/Provider/
 
 Sources/App/
 ├── Views/MenuContentView.swift   # Renders in statsGrid()
-└── ClaudeBarApp.swift            # Wires ClaudeDailyUsageAnalyzer()
+└── TouchQuotaApp.swift            # Wires ClaudeDailyUsageAnalyzer()
 
 Tests/DomainTests/DailyUsage/
 ├── DailyUsageStatTests.swift     # 8 tests: formatting, isEmpty

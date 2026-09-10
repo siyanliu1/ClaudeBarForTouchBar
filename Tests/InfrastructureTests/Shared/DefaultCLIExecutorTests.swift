@@ -45,7 +45,7 @@ struct DefaultCLIExecutorTests {
     func throwsForMissingBinary() async {
         await #expect(throws: (any Error).self) {
             try await DefaultCLIExecutor().execute(
-                binary: "claudebar-missing-cli-xyz",
+                binary: "touchquota-missing-cli-xyz",
                 args: [],
                 input: "",
                 timeout: 5,

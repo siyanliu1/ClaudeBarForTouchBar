@@ -8,7 +8,7 @@ struct KeychainCredentialRepositoryTests {
     func `saves updates retrieves and deletes a credential`() {
         let key = "credential-\(UUID().uuidString)"
         let repository = KeychainCredentialRepository(
-            service: "com.tddworks.claudebar.tests.\(UUID().uuidString)"
+            service: "com.touchquota.app.tests.\(UUID().uuidString)"
         )
         defer { _ = repository.delete(forKey: key) }
 
@@ -30,7 +30,7 @@ struct KeychainCredentialRepositoryTests {
     @Test
     func `deleting a missing credential is idempotent`() {
         let repository = KeychainCredentialRepository(
-            service: "com.tddworks.claudebar.tests.\(UUID().uuidString)"
+            service: "com.touchquota.app.tests.\(UUID().uuidString)"
         )
 
         #expect(repository.delete(forKey: "missing") == true)

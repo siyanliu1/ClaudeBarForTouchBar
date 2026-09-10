@@ -77,13 +77,13 @@ git tag v1.2.0-beta.1 && git push origin v1.2.0-beta.1
 ## What Gets Published
 
 Each release produces:
-- `ClaudeBar-X.Y.Z.zip` — notarized + stapled app (for Sparkle)
-- `ClaudeBar-X.Y.Z.zip.sha256` — checksum
-- `ClaudeBar-X.Y.Z.dmg` — signed DMG (for manual download)
-- `ClaudeBar-X.Y.Z.dmg.sha256` — checksum
+- `TouchQuota-X.Y.Z.zip` — notarized + stapled app (for Sparkle)
+- `TouchQuota-X.Y.Z.zip.sha256` — checksum
+- `TouchQuota-X.Y.Z.dmg` — signed DMG (for manual download)
+- `TouchQuota-X.Y.Z.dmg.sha256` — checksum
 - `docs/appcast.xml` — Sparkle feed (deployed to GitHub Pages)
 
-Homebrew Cask (`brew install --cask claudebar`) updates automatically via BrewTestBot within ~3 hours of a GitHub release.
+Homebrew Cask (`brew install --cask touchquota`) updates automatically via BrewTestBot within ~3 hours of a GitHub release.
 
 ---
 

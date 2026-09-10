@@ -1,16 +1,16 @@
 # Sparkle Auto-Update Setup Guide
 
-This guide covers setting up and using Sparkle auto-updates for ClaudeBar.
+This guide covers setting up and using Sparkle auto-updates for TouchQuota.
 
 ## Overview
 
-ClaudeBar uses [Sparkle](https://sparkle-project.org/) for automatic updates. When a new version is released, users are notified and can update with one click.
+TouchQuota uses [Sparkle](https://sparkle-project.org/) for automatic updates. When a new version is released, users are notified and can update with one click.
 
 ## Architecture
 
 ```
 ┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
-│   ClaudeBar     │────▶│   appcast.xml    │────▶│  GitHub Release │
+│   TouchQuota     │────▶│   appcast.xml    │────▶│  GitHub Release │
 │   (checks)      │     │  (GitHub Pages)  │     │  (downloads)    │
 └─────────────────┘     └──────────────────┘     └─────────────────┘
 ```
@@ -25,7 +25,7 @@ ClaudeBar uses [Sparkle](https://sparkle-project.org/) for automatic updates. Wh
 
 | Key | Value | Description |
 |-----|-------|-------------|
-| `SUFeedURL` | `https://tddworks.github.io/ClaudeBar/appcast.xml` | Update feed location |
+| `SUFeedURL` | `https://siyanliu1.github.io/TouchQuota/appcast.xml` | Update feed location |
 | `SUPublicEDKey` | `2Kn6vvvrrNqgAWrzOiq5Ae+abMjEqlu2MOOM/YBlsw0=` | Public key for signature verification |
 
 ### GitHub Secrets
@@ -102,7 +102,7 @@ The `appcast.xml` follows Sparkle 2.x format:
 <?xml version="1.0" encoding="utf-8"?>
 <rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
   <channel>
-    <title>ClaudeBar Updates</title>
+    <title>TouchQuota Updates</title>
     <item>
       <title>Version 1.2.0</title>
       <pubDate>Wed, 25 Dec 2024 12:00:00 +0000</pubDate>
@@ -110,7 +110,7 @@ The `appcast.xml` follows Sparkle 2.x format:
       <sparkle:shortVersionString>1.2.0</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
       <enclosure
-        url="https://github.com/.../ClaudeBar-1.2.0.zip"
+        url="https://github.com/.../TouchQuota-1.2.0.zip"
         sparkle:edSignature="BASE64_SIGNATURE_HERE"
         length="12345678"
         type="application/octet-stream"
@@ -128,7 +128,7 @@ This is normal when running via `swift run` or Xcode. Use `make run` instead.
 
 ### "No update found" when there should be one
 
-1. Check that `appcast.xml` is deployed: https://tddworks.github.io/ClaudeBar/appcast.xml
+1. Check that `appcast.xml` is deployed: https://siyanliu1.github.io/TouchQuota/appcast.xml
 2. Verify the version in appcast is higher than the running version
 3. Check the EdDSA signature is valid
 

@@ -1,6 +1,6 @@
 # Report Card Architecture
 
-This document describes ClaudeBar's report card system — analytics cards that parse local data sources, aggregate metrics, and display comparisons within the existing provider UI.
+This document describes TouchQuota's report card system — analytics cards that parse local data sources, aggregate metrics, and display comparisons within the existing provider UI.
 
 ## Overview
 
@@ -94,7 +94,7 @@ Since each data source is provider-specific (e.g., `~/.claude/projects/` is Clau
 │  │  card + delta)   │  │         {Name}CardView(...)           │  │
 │  └──────────────────┘  └──────────────────────────────────────┘  │
 │                                                                    │
-│  Sources/App/ClaudeBarApp.swift                                   │
+│  Sources/App/TouchQuotaApp.swift                                   │
 │  └── {Provider}Provider(..., {name}Analyzer: Analyzer())         │
 └──────────────────────────────────────────────────────────────────┘
 ```

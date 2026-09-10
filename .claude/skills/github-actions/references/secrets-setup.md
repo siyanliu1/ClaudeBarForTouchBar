@@ -110,7 +110,7 @@ If you already have the key pair:
 Required secret: `CODECOV_TOKEN`
 
 1. Sign in at [codecov.io](https://codecov.io) with your GitHub account
-2. Add the `tddworks/claudebar` repository
+2. Add the `siyanliu1/TouchQuota` repository
 3. Copy the **Repository Upload Token**
 4. Add secret: `CODECOV_TOKEN`
 

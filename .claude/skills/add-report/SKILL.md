@@ -1,7 +1,7 @@
 ---
 name: add-report
 description: >
-  Guide for adding new report cards to ClaudeBar that analyze local data sources and display
+  Guide for adding new report cards to TouchQuota that analyze local data sources and display
   metrics with comparison deltas. Use this skill when:
   (1) Adding a new report/analytics card (e.g., weekly summary, model breakdown, session stats)
   (2) Creating data analysis features that read local files and display aggregated metrics
@@ -9,7 +9,7 @@ description: >
   (4) Building any feature that follows the DailyUsage pattern (parse → aggregate → report → card)
 ---
 
-# Add Report Card to ClaudeBar
+# Add Report Card to TouchQuota
 
 Add new report cards that analyze local data sources, compute metrics with comparison deltas,
 and display them in the existing card UI style using TDD.
@@ -353,7 +353,7 @@ if let report = snapshot.{name}Report {
 }
 ```
 
-### 3e. Register in ClaudeBarApp
+### 3e. Register in TouchQuotaApp
 
 Pass the analyzer when creating the provider:
 
@@ -370,7 +370,7 @@ Pass the analyzer when creating the provider:
 ## Phase 4: Verify
 
 1. `tuist generate`
-2. Run all tests: `xcodebuild test -scheme ClaudeBar-Workspace ...`
+2. Run all tests: `xcodebuild test -scheme TouchQuota-Workspace ...`
 3. Build the app and verify the cards appear
 4. Check logs for analyzer output
 
@@ -402,7 +402,7 @@ Pass the analyzer when creating the provider:
 - [ ] Add `{name}Report` field to `UsageSnapshot`
 - [ ] Wire analyzer into provider's `refresh()` via `attach{Name}Report`
 - [ ] Render cards in `statsGrid`
-- [ ] Register analyzer in `ClaudeBarApp`
+- [ ] Register analyzer in `TouchQuotaApp`
 
 ### Phase 4: Verify
 - [ ] `tuist generate` succeeds

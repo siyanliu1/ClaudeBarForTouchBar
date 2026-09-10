@@ -5,7 +5,7 @@ import Foundation
 @Suite
 struct NotchActivityTests {
     private func session(_ id: String = "s1") -> ClaudeSession {
-        ClaudeSession(id: id, cwd: "/Users/me/github/claudebar")
+        ClaudeSession(id: id, cwd: "/Users/me/github/touchquota")
     }
 
     private func quota(_ percentRemaining: Double) -> UsageQuota {

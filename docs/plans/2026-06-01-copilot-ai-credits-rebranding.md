@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Update ClaudeBar's GitHub Copilot integration to reflect GitHub's new "AI Credits" billing model. Rename user-facing "premium requests" / "requests" terminology to "AI credits", and change the Copilot card title to "Monthly" with a "Resets in Xd" countdown driven by the calendar (1st of next month, UTC).
+**Goal:** Update TouchQuota's GitHub Copilot integration to reflect GitHub's new "AI Credits" billing model. Rename user-facing "premium requests" / "requests" terminology to "AI credits", and change the Copilot card title to "Monthly" with a "Resets in Xd" countdown driven by the calendar (1st of next month, UTC).
 
 **Architecture:**
 - Quota type becomes `.timeLimit("Monthly")` (reuses existing 30-day `QuotaDuration` precedent; `displayName == "Monthly"`).
@@ -18,7 +18,7 @@
 
 GitHub Copilot now bills usage as **AI Credits** instead of premium requests (see [usage-based billing docs](https://docs.github.com/en/copilot/concepts/billing/usage-based-billing-for-individuals)). All paid plans (Pro, Pro+, Max) get a monthly allowance measured in credits; one credit ≈ $0.01 of model spend. The previous "premium request" model is gone.
 
-ClaudeBar currently shows Copilot as a "Session" card with strings like `"10/50 requests"`, `"CURRENT PREMIUM REQUEST USAGE"`, and `"MONTHLY PREMIUM REQUEST LIMIT"`. The card does not show a time-based reset countdown because neither probe populates `resetsAt`.
+TouchQuota currently shows Copilot as a "Session" card with strings like `"10/50 requests"`, `"CURRENT PREMIUM REQUEST USAGE"`, and `"MONTHLY PREMIUM REQUEST LIMIT"`. The card does not show a time-based reset countdown because neither probe populates `resetsAt`.
 
 This plan renames the user-facing vocabulary and gives the card a proper "Monthly" identity with a "Resets in Xd" countdown.
 
@@ -530,7 +530,7 @@ Expected: every target green.
 - [ ] **Step 2: Run a release build to catch any issues in the App target**
 
 ```bash
-tuist build ClaudeBar -C Release
+tuist build TouchQuota -C Release
 ```
 
 Expected: success.

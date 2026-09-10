@@ -100,7 +100,7 @@ public final class ThemeRegistry {
 
     // MARK: - Imported Themes
 
-    /// Load imported themes from ~/.claudebar/themes/
+    /// Load imported themes from ~/.touchquota/themes/
     private func loadImportedThemes() {
         for (scheme, _) in importedThemeStore.loadAll() {
             let props = TerminalThemeGenerator.generate(from: scheme)

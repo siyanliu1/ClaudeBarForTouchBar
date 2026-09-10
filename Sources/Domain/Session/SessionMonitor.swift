@@ -27,7 +27,7 @@ public final class SessionMonitor {
     /// Processes a session event and updates state accordingly.
     ///
     /// Events are routed by session id. An event naming a session that was never
-    /// started is dropped: ClaudeBar may well have launched mid-session, and
+    /// started is dropped: TouchQuota may well have launched mid-session, and
     /// inventing a session from a `Stop` would show one with no start time.
     public func processEvent(_ event: SessionEvent) {
         // Liveness is recorded before staleness is judged. An event is proof its

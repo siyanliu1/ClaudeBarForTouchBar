@@ -2,7 +2,7 @@ import Foundation
 import Domain
 import os.log
 
-private let logger = Logger(subsystem: "com.claudebar", category: "GeminiProjectRepository")
+private let logger = Logger(subsystem: "com.touchquota", category: "GeminiProjectRepository")
 
 internal struct GeminiProjectRepository {
     private let networkClient: any NetworkClient

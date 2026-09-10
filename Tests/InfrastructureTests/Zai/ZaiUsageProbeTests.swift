@@ -10,7 +10,7 @@ struct ZaiUsageProbeTests {
     // MARK: - Test Helpers
 
     private func makeSettingsRepository() -> UserDefaultsProviderSettingsRepository {
-        let suiteName = "com.claudebar.test.\(UUID().uuidString)"
+        let suiteName = "com.touchquota.test.\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suiteName)!
         let repo = UserDefaultsProviderSettingsRepository(userDefaults: defaults)
         repo.setEnabled(true, forProvider: "zai")

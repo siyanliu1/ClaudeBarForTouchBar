@@ -24,7 +24,7 @@ struct CopilotConfigSpec {
         manualUsageValue: Double? = nil,
         manualUsageIsPercent: Bool = false
     ) -> UserDefaultsProviderSettingsRepository {
-        let suiteName = "com.claudebar.test.\(UUID().uuidString)"
+        let suiteName = "com.touchquota.test.\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suiteName)!
         let repo = UserDefaultsProviderSettingsRepository(userDefaults: defaults)
         repo.setEnabled(enabled, forProvider: "copilot")
@@ -48,7 +48,7 @@ struct CopilotConfigSpec {
         @Test
         func `saving token and username persists in settings`() {
             // Given
-            let suiteName = "com.claudebar.test.\(UUID().uuidString)"
+            let suiteName = "com.touchquota.test.\(UUID().uuidString)"
             let defaults = UserDefaults(suiteName: suiteName)!
             let settings = UserDefaultsProviderSettingsRepository(userDefaults: defaults)
             settings.setEnabled(true, forProvider: "copilot")
@@ -68,7 +68,7 @@ struct CopilotConfigSpec {
         @Test
         func `deleting credentials clears token and username`() {
             // Given — credentials exist
-            let suiteName = "com.claudebar.test.\(UUID().uuidString)"
+            let suiteName = "com.touchquota.test.\(UUID().uuidString)"
             let defaults = UserDefaults(suiteName: suiteName)!
             let settings = UserDefaultsProviderSettingsRepository(userDefaults: defaults)
             settings.setEnabled(true, forProvider: "copilot")
@@ -95,7 +95,7 @@ struct CopilotConfigSpec {
         @Test
         func `monthly limit is persisted per tier`() {
             // Given
-            let suiteName = "com.claudebar.test.\(UUID().uuidString)"
+            let suiteName = "com.touchquota.test.\(UUID().uuidString)"
             let defaults = UserDefaults(suiteName: suiteName)!
             let settings = UserDefaultsProviderSettingsRepository(userDefaults: defaults)
 
@@ -124,7 +124,7 @@ struct CopilotConfigSpec {
         @Test
         func `manual usage value is persisted`() {
             // Given
-            let suiteName = "com.claudebar.test.\(UUID().uuidString)"
+            let suiteName = "com.touchquota.test.\(UUID().uuidString)"
             let defaults = UserDefaults(suiteName: suiteName)!
             let settings = UserDefaultsProviderSettingsRepository(userDefaults: defaults)
 
@@ -142,7 +142,7 @@ struct CopilotConfigSpec {
         @Test
         func `percentage-based manual usage is supported`() {
             // Given
-            let suiteName = "com.claudebar.test.\(UUID().uuidString)"
+            let suiteName = "com.touchquota.test.\(UUID().uuidString)"
             let defaults = UserDefaults(suiteName: suiteName)!
             let settings = UserDefaultsProviderSettingsRepository(userDefaults: defaults)
 
@@ -165,7 +165,7 @@ struct CopilotConfigSpec {
         @Test
         func `empty API state is persisted for warning banner`() {
             // Given
-            let suiteName = "com.claudebar.test.\(UUID().uuidString)"
+            let suiteName = "com.touchquota.test.\(UUID().uuidString)"
             let defaults = UserDefaults(suiteName: suiteName)!
             let settings = UserDefaultsProviderSettingsRepository(userDefaults: defaults)
 
@@ -188,7 +188,7 @@ struct CopilotConfigSpec {
         @Test
         func `usage period is tracked for auto-clear`() {
             // Given
-            let suiteName = "com.claudebar.test.\(UUID().uuidString)"
+            let suiteName = "com.touchquota.test.\(UUID().uuidString)"
             let defaults = UserDefaults(suiteName: suiteName)!
             let settings = UserDefaultsProviderSettingsRepository(userDefaults: defaults)
 

@@ -5,7 +5,7 @@ import OSLog
 ///
 /// This facade provides category-specific loggers that output to:
 /// 1. **OSLog** - For Console.app, live streaming, and development debugging
-/// 2. **File** - For user-accessible logs at ~/Library/Logs/ClaudeBar/ClaudeBar.log
+/// 2. **File** - For user-accessible logs at ~/Library/Logs/TouchQuota/TouchQuota.log
 ///
 /// ## Usage Examples
 ///
@@ -34,12 +34,12 @@ import OSLog
 ///
 /// **File logs (for users):**
 /// ```
-/// ~/Library/Logs/ClaudeBar/ClaudeBar.log
+/// ~/Library/Logs/TouchQuota/TouchQuota.log
 /// ```
 ///
 /// **OSLog (for developers):**
 /// ```bash
-/// log show --predicate 'subsystem == "com.tddworks.ClaudeBar"' --info --debug --last 1h
+/// log show --predicate 'subsystem == "com.touchquota.app"' --info --debug --last 1h
 /// ```
 public enum AppLog {
     /// Logger for quota monitoring operations
@@ -96,7 +96,7 @@ public struct CategoryLogger: Sendable {
     
     init(category: String) {
         self.category = category
-        let subsystem = Bundle.main.bundleIdentifier ?? "com.tddworks.ClaudeBar"
+        let subsystem = Bundle.main.bundleIdentifier ?? "com.touchquota.app"
         self.osLogger = Logger(subsystem: subsystem, category: category)
     }
     

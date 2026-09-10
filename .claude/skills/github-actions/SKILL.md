@@ -1,7 +1,7 @@
 ---
 name: github-actions
 description: |
-  Manage ClaudeBar's GitHub Actions CI/CD pipelines: build, test, and release workflows.
+  Manage TouchQuota's GitHub Actions CI/CD pipelines: build, test, and release workflows.
   Use this skill when:
   (1) Setting up secrets for CI/CD (certificate, API key, Sparkle key, Codecov)
   (2) Creating a new release — tag-based or manual workflow_dispatch
@@ -11,7 +11,7 @@ description: |
   (6) User says "release a new version", "push a tag", "set up CI secrets", "why did the release fail"
 ---
 
-# ClaudeBar GitHub Actions
+# TouchQuota GitHub Actions
 
 Three workflows live in `.github/workflows/`. See reference files for setup and troubleshooting.
 

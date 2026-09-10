@@ -1,10 +1,10 @@
 #!/bin/sh
 # Example metrics probe — uses config values from Settings
-# $CLAUDEBAR_API_KEY and $CLAUDEBAR_MONTHLY_BUDGET are injected automatically
+# $TOUCHQUOTA_API_KEY and $TOUCHQUOTA_MONTHLY_BUDGET are injected automatically
 #
 # Replace this with real API calls:
-#   USAGE=$(curl -s -H "Authorization: Bearer $CLAUDEBAR_API_KEY" "$CLAUDEBAR_BASE_URL/billing")
-#   BUDGET=${CLAUDEBAR_MONTHLY_BUDGET:-100}
+#   USAGE=$(curl -s -H "Authorization: Bearer $TOUCHQUOTA_API_KEY" "$TOUCHQUOTA_BASE_URL/billing")
+#   BUDGET=${TOUCHQUOTA_MONTHLY_BUDGET:-100}
 
 YESTERDAY_LABEL=$(date -v-1d +"%b %d")
 

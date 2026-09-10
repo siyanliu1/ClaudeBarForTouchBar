@@ -1,7 +1,7 @@
 import Foundation
 import Infrastructure
 
-/// Persists imported terminal color schemes as JSON files in `~/.claudebar/themes/`.
+/// Persists imported terminal color schemes as JSON files in `~/.touchquota/themes/`.
 ///
 /// On load, the stored ``TerminalColorScheme`` values are re-generated into themes
 /// by ``TerminalThemeGenerator``, ensuring imported themes benefit from future mapping improvements.
@@ -11,7 +11,7 @@ public final class ImportedThemeStore {
     private let themesDirectory: URL
 
     /// Create a store backed by a directory.
-    /// - Parameter directory: Override for the themes directory. Defaults to `~/.claudebar/themes/`.
+    /// - Parameter directory: Override for the themes directory. Defaults to `~/.touchquota/themes/`.
     public init(directory: URL? = nil) {
         self.themesDirectory = directory ?? Self.defaultDirectory()
     }
@@ -51,7 +51,7 @@ public final class ImportedThemeStore {
 
     private static func defaultDirectory() -> URL {
         FileManager.default.homeDirectoryForCurrentUser
-            .appendingPathComponent(".claudebar")
+            .appendingPathComponent(".touchquota")
             .appendingPathComponent("themes")
     }
 

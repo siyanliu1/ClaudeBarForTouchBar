@@ -46,7 +46,7 @@ Add API-based usage probing for Codex, following the same dual-probe pattern as 
 │  └──────────────────────────────────────────┘     │ Repository (NEW)      │  │
 │                                                    │ extends base          │  │
 │  ┌──────────────────────────────────────────┐     │ + codexProbeMode()    │  │
-│  │  ClaudeBarApp.swift (MODIFIED)            │     └───────────────────────┘  │
+│  │  TouchQuotaApp.swift (MODIFIED)            │     └───────────────────────┘  │
 │  │  CodexProvider(                            │                                │
 │  │    cliProbe: CodexUsageProbe(),            │                                │
 │  │    apiProbe: CodexAPIUsageProbe(),         │                                │
@@ -160,5 +160,5 @@ Add API-based usage probing for Codex, following the same dual-probe pattern as 
 - `Sources/Domain/Provider/ProviderSettingsRepository.swift` - Add `CodexSettingsRepository` protocol
 - `Sources/Domain/Provider/CodexProvider.swift` - Add dual-probe support (cliProbe + apiProbe)
 - `Sources/Infrastructure/Storage/UserDefaultsProviderSettingsRepository.swift` - Implement `CodexSettingsRepository`
-- `Sources/App/ClaudeBarApp.swift` - Pass API probe to CodexProvider
+- `Sources/App/TouchQuotaApp.swift` - Pass API probe to CodexProvider
 - `Sources/App/Views/SettingsView.swift` - Add Codex probe mode picker

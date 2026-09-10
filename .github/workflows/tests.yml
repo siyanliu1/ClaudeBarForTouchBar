@@ -5,7 +5,7 @@ name: CI
 # most of it cloning aws-sdk-swift), and as two separate workflows they each
 # paid for it on their own runner. The Debug build the old build.yml ran is not
 # lost either: the
-# ClaudeBar scheme's build action covers the app target, so `xcodebuild test`
+# TouchQuota scheme's build action covers the app target, so `xcodebuild test`
 # already compiles all of Sources/App. Only Release needs its own step, because
 # the scheme's test action is pinned to the Debug configuration.
 
@@ -60,8 +60,8 @@ jobs:
       - name: Run Tests with Coverage
         run: |
           xcodebuild test \
-            -scheme ClaudeBar \
-            -workspace ClaudeBar.xcworkspace \
+            -scheme TouchQuota \
+            -workspace TouchQuota.xcworkspace \
             -destination 'platform=macOS,arch=arm64' \
             -enableCodeCoverage YES \
             -skipMacroValidation \
@@ -139,8 +139,8 @@ jobs:
       - name: Build Release
         run: |
           xcodebuild build \
-            -scheme ClaudeBar \
-            -workspace ClaudeBar.xcworkspace \
+            -scheme TouchQuota \
+            -workspace TouchQuota.xcworkspace \
             -destination 'platform=macOS,arch=arm64' \
             -skipMacroValidation \
             -configuration Release

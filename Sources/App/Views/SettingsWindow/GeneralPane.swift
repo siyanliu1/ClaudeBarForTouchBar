@@ -15,7 +15,7 @@ struct GeneralPane: View {
             SettingsCard {
                 SettingsRow(
                     title: "Launch at Login",
-                    subtitle: "Start ClaudeBar automatically when you sign in to your Mac."
+                    subtitle: "Start TouchQuota automatically when you sign in to your Mac."
                 ) {
                     SettingsSwitch(isOn: $settings.launchAtLogin)
                 }

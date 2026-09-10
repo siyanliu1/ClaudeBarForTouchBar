@@ -84,17 +84,17 @@ public struct SessionEvent: Sendable, Equatable, Codable {
         "elicitation_url_dialog",
     ]
 
-    /// Whether this event originates from ClaudeBar's own background quota probe.
+    /// Whether this event originates from TouchQuota's own background quota probe.
     ///
-    /// ClaudeBar refreshes quotas by spawning `claude /usage` in
-    /// `<AppSupport>/ClaudeBar/Probe`. Claude Code fires SessionStart/SessionEnd
-    /// hooks for that run, which loop back into ClaudeBar's own hook server. These
+    /// TouchQuota refreshes quotas by spawning `claude /usage` in
+    /// `<AppSupport>/TouchQuota/Probe`. Claude Code fires SessionStart/SessionEnd
+    /// hooks for that run, which loop back into TouchQuota's own hook server. These
     /// events must be ignored so routine background polling doesn't pollute the
     /// recent-sessions list or fire "Claude Code Finished: Probe" notifications.
     /// (issue #172)
-    public var isClaudeBarProbe: Bool {
+    public var isTouchQuotaProbe: Bool {
         let components = ((cwd as NSString).standardizingPath as NSString).pathComponents
-        return Array(components.suffix(2)) == ["ClaudeBar", "Probe"]
+        return Array(components.suffix(2)) == ["TouchQuota", "Probe"]
     }
 
     /// The types of hook events from Claude Code

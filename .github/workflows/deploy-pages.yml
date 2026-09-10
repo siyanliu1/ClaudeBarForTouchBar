@@ -41,10 +41,15 @@ jobs:
 
       - name: Preserve the live appcast
         run: |
-          LIVE="https://tddworks.github.io/ClaudeBar/appcast.xml"
+          LIVE="https://siyanliu1.github.io/TouchQuota/appcast.xml"
 
           if ! curl -fsSL --retry 3 --retry-delay 2 "$LIVE" -o /tmp/appcast.xml; then
-            echo "::error::Could not fetch the live appcast from $LIVE."
+            STATUS=$(curl -s -o /dev/null -w '%{http_code}' "$LIVE" || echo 000)
+            if [ "$STATUS" = "404" ]; then
+              echo "No appcast published at $LIVE yet — first deploy, nothing to preserve."
+              exit 0
+            fi
+            echo "::error::Could not fetch the live appcast from $LIVE (HTTP $STATUS)."
             echo "::error::Refusing to deploy — publishing the repo copy would roll back Sparkle auto-updates."
             exit 1
           fi

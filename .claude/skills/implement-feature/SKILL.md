@@ -1,7 +1,7 @@
 ---
 name: implement-feature
 description: |
-  Guide for implementing features in ClaudeBar following architecture-first design, TDD, rich domain models, and Swift 6.2 patterns. Use this skill when:
+  Guide for implementing features in TouchQuota following architecture-first design, TDD, rich domain models, and Swift 6.2 patterns. Use this skill when:
   (1) Adding new functionality to the app
   (2) Creating domain models that follow user's mental model
   (3) Building SwiftUI views that consume domain models directly
@@ -9,7 +9,7 @@ description: |
   (5) Implementing any feature that spans Domain, Infrastructure, and App layers
 ---
 
-# Implement Feature in ClaudeBar
+# Implement Feature in TouchQuota
 
 Implement features using architecture-first design, TDD, rich domain models, and Swift 6.2 patterns.
 
@@ -78,7 +78,7 @@ Example: Adding a new AI provider
 │                              ┌──────────────────────────────────┐   │
 │                              │  App Layer                        │   │
 │                              │  ┌────────────────────────────┐   │   │
-│                              │  │ ClaudeBarApp.swift         │   │   │
+│                              │  │ TouchQuotaApp.swift         │   │   │
 │                              │  │ (register new provider)    │   │   │
 │                              │  └────────────────────────────┘   │   │
 │                              └──────────────────────────────────┘   │
@@ -259,7 +259,7 @@ struct FeatureServiceTests {
 
 ### Phase 3: Integration
 
-Wire up in `ClaudeBarApp.swift` and create views.
+Wire up in `TouchQuotaApp.swift` and create views.
 
 ## References
 

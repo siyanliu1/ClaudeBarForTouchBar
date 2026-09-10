@@ -23,7 +23,7 @@ struct ZaiConfigSpec {
         @Test
         func `config path is persisted in UserDefaults`() {
             // Given
-            let suiteName = "com.claudebar.test.\(UUID().uuidString)"
+            let suiteName = "com.touchquota.test.\(UUID().uuidString)"
             let defaults = UserDefaults(suiteName: suiteName)!
             let settings = UserDefaultsProviderSettingsRepository(userDefaults: defaults)
 
@@ -47,7 +47,7 @@ struct ZaiConfigSpec {
         @Test
         func `env var name is persisted in UserDefaults`() {
             // Given
-            let suiteName = "com.claudebar.test.\(UUID().uuidString)"
+            let suiteName = "com.touchquota.test.\(UUID().uuidString)"
             let defaults = UserDefaults(suiteName: suiteName)!
             let settings = UserDefaultsProviderSettingsRepository(userDefaults: defaults)
 
@@ -64,7 +64,7 @@ struct ZaiConfigSpec {
         @Test
         func `Zai provider delegates to probe for authentication`() async throws {
             // Given — probe returns successful snapshot
-            let suiteName = "com.claudebar.test.\(UUID().uuidString)"
+            let suiteName = "com.touchquota.test.\(UUID().uuidString)"
             let defaults = UserDefaults(suiteName: suiteName)!
             let settings = UserDefaultsProviderSettingsRepository(userDefaults: defaults)
             settings.setEnabled(true, forProvider: "zai")
@@ -90,7 +90,7 @@ struct ZaiConfigSpec {
         @Test
         func `Zai provider stores error when authentication fails`() async {
             // Given — probe throws auth error
-            let suiteName = "com.claudebar.test.\(UUID().uuidString)"
+            let suiteName = "com.touchquota.test.\(UUID().uuidString)"
             let defaults = UserDefaults(suiteName: suiteName)!
             let settings = UserDefaultsProviderSettingsRepository(userDefaults: defaults)
             settings.setEnabled(true, forProvider: "zai")

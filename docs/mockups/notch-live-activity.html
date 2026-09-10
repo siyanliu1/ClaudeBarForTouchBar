@@ -1,10 +1,10 @@
-<title>ClaudeBar Notch</title>
+<title>TouchQuota Notch</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
 
 <style>
-/* ClaudeBar Notch — deliberately single-theme.
+/* TouchQuota Notch — deliberately single-theme.
    The subject is a black display cutout on a dark desktop; a light variant
    would misrepresent it. Every colour is painted explicitly. */
 :root{
@@ -292,9 +292,9 @@ h1 em{font-style:normal;color:var(--accent)}
 <div class="stage">
 
   <header class="masthead">
-    <div class="eyebrow">ClaudeBar · Prototype</div>
+    <div class="eyebrow">TouchQuota · Prototype</div>
     <h1>The notch, wired to <em>Claude Code</em></h1>
-    <p class="lede">ClaudeBar already knows when a session starts, when subagents fan out, when a turn ends, and how much quota is left. All of it lives behind a 16&nbsp;px menu bar icon. This moves it to the one piece of screen you are already looking at.</p>
+    <p class="lede">TouchQuota already knows when a session starts, when subagents fan out, when a turn ends, and how much quota is left. All of it lives behind a 16&nbsp;px menu bar icon. This moves it to the one piece of screen you are already looking at.</p>
   </header>
 
   <div class="display">
@@ -350,7 +350,7 @@ h1 em{font-style:normal;color:var(--accent)}
 
   <section class="readout" id="readout"></section>
 
-  <p class="foot">Everything above except the badged state reads from state ClaudeBar already tracks — <code style="font-family:var(--mono);font-size:12px;color:var(--accent)">SessionMonitor</code> for the hook stream, <code style="font-family:var(--mono);font-size:12px;color:var(--accent)">QuotaMonitor</code> for provider quotas. The notch is a second view onto them, not a second source of truth.</p>
+  <p class="foot">Everything above except the badged state reads from state TouchQuota already tracks — <code style="font-family:var(--mono);font-size:12px;color:var(--accent)">SessionMonitor</code> for the hook stream, <code style="font-family:var(--mono);font-size:12px;color:var(--accent)">QuotaMonitor</code> for provider quotas. The notch is a second view onto them, not a second source of truth.</p>
 
 </div>
 
@@ -364,14 +364,14 @@ const S = {
       state:"Nothing running",
       trigger:"No active session",
       source:"<code>SessionMonitor.activeSession == nil</code>",
-      does:"The notch stays the notch. ClaudeBar draws nothing until it has something to say."
+      does:"The notch stays the notch. TouchQuota draws nothing until it has something to say."
     }
   },
 
   working: {
     chip:"Claude is working", sw:"#34D399",
     w:352, h:40, r:16, fillet:12, accent:"var(--live)", glow:null, open:0,
-    left:'<span class="pulse"></span><span class="label">claudebar</span>',
+    left:'<span class="pulse"></span><span class="label">touchquota</span>',
     right:'<span class="meta mono">1:34</span>',
     read:{
       state:"Working",
@@ -384,7 +384,7 @@ const S = {
   agents: {
     chip:"Subagents fanned out", sw:"#60A5FA",
     w:382, h:40, r:16, fillet:12, accent:"var(--agents)", glow:null, open:0,
-    left:'<span class="orbit"><i></i><i></i><i></i></span><span class="label">claudebar</span>',
+    left:'<span class="orbit"><i></i><i></i><i></i></span><span class="label">touchquota</span>',
     right:'<span class="meta">3 agents</span><span class="meta mono">2:08</span>',
     read:{
       state:"Agents working",
@@ -410,7 +410,7 @@ const S = {
   done: {
     chip:"Turn finished", sw:"#34D399",
     w:346, h:40, r:16, fillet:12, accent:"var(--live)", glow:"rgba(52,211,153,.28)", open:0,
-    left:'<span class="glyph">􀆅</span><span class="label">claudebar</span>',
+    left:'<span class="glyph">􀆅</span><span class="label">touchquota</span>',
     right:'<span class="meta">7 tasks</span><span class="meta mono">4:12</span>',
     read:{
       state:"Done",
@@ -514,8 +514,8 @@ const S = {
       </div>
 
       <div class="p-foot">
-        <span class="act primary">Focus claudebar</span>
-        <span class="act">Open ClaudeBar</span>
+        <span class="act primary">Focus touchquota</span>
+        <span class="act">Open TouchQuota</span>
         <span class="act">Snooze alerts</span>
       </div>`,
     read:{

@@ -16,7 +16,7 @@ struct HooksPane: View {
     var body: some View {
         SettingsPane(
             title: "Hooks",
-            subtitle: "Let Claude Code push live session events into ClaudeBar."
+            subtitle: "Let Claude Code push live session events into TouchQuota."
         ) {
             SettingsCard {
                 SettingsRow(

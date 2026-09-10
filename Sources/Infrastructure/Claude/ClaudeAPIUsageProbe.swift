@@ -369,7 +369,7 @@ public struct ClaudeAPIUsageProbe: UsageProbe, @unchecked Sendable {
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("oauth-2025-04-20", forHTTPHeaderField: "anthropic-beta")
-        request.setValue("ClaudeBar", forHTTPHeaderField: "User-Agent")
+        request.setValue("TouchQuota", forHTTPHeaderField: "User-Agent")
         request.timeoutInterval = timeout
 
         AppLog.probes.debug("Claude API: Fetching usage...")
