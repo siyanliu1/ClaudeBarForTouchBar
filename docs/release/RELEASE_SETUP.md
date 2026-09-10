@@ -367,44 +367,9 @@ The following table documents all supported update scenarios:
 
 ---
 
-## Part 6: Homebrew Cask (Automatic)
+## Part 6: Homebrew
 
-TouchQuota is available on [Homebrew Cask](https://formulae.brew.sh/cask/touchquota) and **updates automatically**.
-
-### How It Works
-
-The cask has a `livecheck` block that monitors GitHub releases. Homebrew's **BrewTestBot** automatically:
-1. Detects new releases on GitHub every ~3 hours
-2. Downloads the DMG and calculates SHA256
-3. Creates a PR to update the cask formula
-4. Merges it after CI passes
-
-**No manual action is required** for Homebrew updates.
-
-### Checking Homebrew Status
-
-After releasing a new version, you can check the cask status:
-
-```bash
-# Check current Homebrew version
-brew info --cask touchquota
-
-# See the cask formula
-brew cat touchquota
-```
-
-The Homebrew version typically updates within a few hours of a GitHub release.
-
-### Manual Update (If Needed)
-
-In rare cases where the automatic update doesn't work:
-
-```bash
-# Create a PR to update the cask
-brew bump-cask-pr touchquota
-```
-
-Note: This will fail if BrewTestBot has already created a PR.
+TouchQuota has no Homebrew cask yet, so users install from the DMG or ZIP attached to each GitHub release. A cask has to be submitted to [homebrew/cask](https://github.com/Homebrew/homebrew-cask) before any `brew` command in this guide can work.
 
 ---
 
@@ -503,22 +468,8 @@ base64 -i AuthKey_XXXX.p8 | tr -d '\n' | pbcopy
 security find-identity -v -p codesigning
 ```
 
-### Homebrew Commands
-
-```bash
-# Check current Homebrew Cask version
-brew info --cask touchquota
-
-# Install from Homebrew
-brew install --cask touchquota
-
-# View cask formula
-brew cat touchquota
-```
-
 ### Links
 
 - [Apple Developer Certificates](https://developer.apple.com/account/resources/certificates)
 - [App Store Connect API Keys](https://appstoreconnect.apple.com/access/api)
 - [Apple Notarization Documentation](https://developer.apple.com/documentation/security/notarizing_macos_software_before_distribution)
-- [Homebrew Cask touchquota](https://formulae.brew.sh/cask/touchquota)

@@ -83,7 +83,7 @@ Each release produces:
 - `TouchQuota-X.Y.Z.dmg.sha256` — checksum
 - `docs/appcast.xml` — Sparkle feed (deployed to GitHub Pages)
 
-Homebrew Cask (`brew install --cask touchquota`) updates automatically via BrewTestBot within ~3 hours of a GitHub release.
+TouchQuota has no Homebrew cask yet; users install from the DMG or ZIP attached to the GitHub release.
 
 ---
 
