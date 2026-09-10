@@ -6,19 +6,19 @@
 
 ## Overview
 
-Add AWS Bedrock as a new provider to ClaudeBar, enabling users to monitor their Bedrock usage and costs directly from the menu bar. This provider will query AWS CloudWatch for usage metrics, calculate costs using cached pricing data from the AWS Pricing API, and display budget-focused information with per-model breakdowns.
+Add AWS Bedrock as a new provider to TouchQuota, enabling users to monitor their Bedrock usage and costs directly from the menu bar. This provider will query AWS CloudWatch for usage metrics, calculate costs using cached pricing data from the AWS Pricing API, and display budget-focused information with per-model breakdowns.
 
 ### Goals
 
 1. **Full Bedrock support** - Track all Bedrock models (Claude, Mistral, Llama, etc.)
 2. **Global community** - Support any AWS account, region, and common auth methods
 3. **Cost visibility** - Show real-time cost estimates with budget tracking
-4. **Pattern compliance** - Match ClaudeBar's existing architecture and UI patterns exactly
+4. **Pattern compliance** - Match TouchQuota's existing architecture and UI patterns exactly
 
 ### Non-Goals
 
-- Historical trend analysis (not in current ClaudeBar)
-- Multi-account switching (not in current ClaudeBar)
+- Historical trend analysis (not in current TouchQuota)
+- Multi-account switching (not in current TouchQuota)
 - Custom pricing agreements (use AWS Pricing API only)
 
 ---
@@ -28,7 +28,7 @@ Add AWS Bedrock as a new provider to ClaudeBar, enabling users to monitor their 
 ### Provider Hierarchy
 
 ```
-ClaudeBar Providers
+TouchQuota Providers
 ├── ClaudeProvider (existing)
 ├── CodexProvider (existing)
 ├── GeminiProvider (existing)
@@ -366,7 +366,7 @@ extension UserDefaultsProviderSettingsRepository: BedrockSettingsRepository {
 
 ## BedrockProvider
 
-The main provider class following ClaudeBar patterns.
+The main provider class following TouchQuota patterns.
 
 ```swift
 /// AWS Bedrock provider - monitors usage via CloudWatch
@@ -587,7 +587,7 @@ New section in SettingsView for Bedrock configuration:
 │  ┌─────────────────────────────────────────────────────┐   │
 │  │ my-aws-profile                                  ▼   │   │
 │  └─────────────────────────────────────────────────────┘   │
-│  ℹ️ Credentials read from ~/.aws - not stored by ClaudeBar  │
+│  ℹ️ Credentials read from ~/.aws - not stored by TouchQuota  │
 │                                                             │
 │  Regions                                                    │
 │  ┌─────────────────────────────────────────────────────┐   │
@@ -801,7 +801,7 @@ targets: [
 ### Phase 3: Provider Integration
 
 1. Create `BedrockProvider` class
-2. Register provider in `ClaudeBarApp.init()`
+2. Register provider in `TouchQuotaApp.init()`
 3. Add provider icon to Assets
 4. Test basic refresh flow
 

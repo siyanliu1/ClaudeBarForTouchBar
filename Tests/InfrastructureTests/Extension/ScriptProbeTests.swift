@@ -238,8 +238,8 @@ struct ScriptProbeTests {
 
         // The command should contain env var exports before the script
         let command = capturedArgs.last ?? ""
-        #expect(command.contains("CLAUDEBAR_API_KEY="))
-        #expect(command.contains("CLAUDEBAR_BASE_URL="))
+        #expect(command.contains("TOUCHQUOTA_API_KEY="))
+        #expect(command.contains("TOUCHQUOTA_BASE_URL="))
         #expect(command.contains("./probe.sh"))
     }
 
@@ -271,7 +271,7 @@ struct ScriptProbeTests {
 
         // No env prefix — just the raw script path
         let command = capturedArgs.last ?? ""
-        #expect(!command.contains("CLAUDEBAR_"))
+        #expect(!command.contains("TOUCHQUOTA_"))
     }
 
     @Test

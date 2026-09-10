@@ -78,25 +78,25 @@ struct ConfigFieldTests {
     @Test
     func `computes environment variable name from camelCase id`() {
         let field = ConfigField(id: "apiKey", label: "API Key", type: .secret)
-        #expect(field.environmentVariableName == "CLAUDEBAR_API_KEY")
+        #expect(field.environmentVariableName == "TOUCHQUOTA_API_KEY")
     }
 
     @Test
     func `computes environment variable name from simple id`() {
         let field = ConfigField(id: "port", label: "Port", type: .number)
-        #expect(field.environmentVariableName == "CLAUDEBAR_PORT")
+        #expect(field.environmentVariableName == "TOUCHQUOTA_PORT")
     }
 
     @Test
     func `computes environment variable name from kebab-case id`() {
         let field = ConfigField(id: "base-url", label: "Base URL", type: .string)
-        #expect(field.environmentVariableName == "CLAUDEBAR_BASE_URL")
+        #expect(field.environmentVariableName == "TOUCHQUOTA_BASE_URL")
     }
 
     @Test
     func `computes environment variable name from snake_case id`() {
         let field = ConfigField(id: "monthly_budget", label: "Budget", type: .number)
-        #expect(field.environmentVariableName == "CLAUDEBAR_MONTHLY_BUDGET")
+        #expect(field.environmentVariableName == "TOUCHQUOTA_MONTHLY_BUDGET")
     }
 
     // MARK: - Secret Detection

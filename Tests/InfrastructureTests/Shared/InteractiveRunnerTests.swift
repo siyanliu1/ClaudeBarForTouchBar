@@ -45,7 +45,7 @@ struct InteractiveRunnerTests {
     func `run with environmentExclusions strips env vars from subprocess`() throws {
         let runner = InteractiveRunner()
         // Set a test env var that we'll verify is excluded
-        let testKey = "CLAUDEBAR_TEST_EXCLUSION_VAR"
+        let testKey = "TOUCHQUOTA_TEST_EXCLUSION_VAR"
         setenv(testKey, "should_be_stripped", 1)
         defer { unsetenv(testKey) }
 
@@ -56,13 +56,13 @@ struct InteractiveRunnerTests {
             options: .init(environmentExclusions: [testKey])
         )
 
-        #expect(!result.output.contains("CLAUDEBAR_TEST_EXCLUSION_VAR=should_be_stripped"))
+        #expect(!result.output.contains("TOUCHQUOTA_TEST_EXCLUSION_VAR=should_be_stripped"))
     }
 
     @Test
     func `run without environmentExclusions preserves env vars in subprocess`() throws {
         let runner = InteractiveRunner()
-        let testKey = "CLAUDEBAR_TEST_PRESERVE_VAR"
+        let testKey = "TOUCHQUOTA_TEST_PRESERVE_VAR"
         setenv(testKey, "should_be_present", 1)
         defer { unsetenv(testKey) }
 
@@ -73,7 +73,7 @@ struct InteractiveRunnerTests {
             options: .init()
         )
 
-        #expect(result.output.contains("CLAUDEBAR_TEST_PRESERVE_VAR=should_be_present"))
+        #expect(result.output.contains("TOUCHQUOTA_TEST_PRESERVE_VAR=should_be_present"))
     }
 
     // MARK: - Completion Rule (issue #271)

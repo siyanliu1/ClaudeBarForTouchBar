@@ -6,7 +6,7 @@ import Domain
 ///
 /// ```
 ///  ┌─┬────────────────────────────┐
-///  │▌│ claudebar            34%   │
+///  │▌│ touchquota            34%   │
 ///  │▌│ Bash · tuist test Domai…   │
 ///  └─┴────────────────────────────┘
 /// ```
@@ -14,7 +14,7 @@ import Domain
 /// Decides nothing: `TouchBarBoard.Tile` has already worked out which line to
 /// show and whether this session is asking for the user. This only draws it.
 final class SessionTileView: NSScrubberItemView {
-    static let identifier = NSUserInterfaceItemIdentifier("com.tddworks.claudebar.touchbar.tile")
+    static let identifier = NSUserInterfaceItemIdentifier("com.touchquota.app.touchbar.tile")
 
     private let phaseBar = NSView()
     private let nameLabel = NSTextField(labelWithString: "")

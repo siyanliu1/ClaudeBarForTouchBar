@@ -4,7 +4,7 @@ import Foundation
 /// Supports dot-notation keys for nested access (e.g., "app.themeMode").
 /// Preserves unknown keys on write (OCP-compliant).
 ///
-/// File location: `~/.claudebar/settings.json` (default)
+/// File location: `~/.touchquota/settings.json` (default)
 public final class JSONSettingsStore: @unchecked Sendable {
 
     /// Shared instance using the default file path
@@ -14,7 +14,7 @@ public final class JSONSettingsStore: @unchecked Sendable {
     private let lock = NSLock()
 
     /// Creates a store backed by a JSON file.
-    /// - Parameter fileURL: Path to settings file. Defaults to `~/.claudebar/settings.json`.
+    /// - Parameter fileURL: Path to settings file. Defaults to `~/.touchquota/settings.json`.
     public init(fileURL: URL? = nil) {
         self.fileURL = fileURL ?? Self.defaultFileURL()
     }
@@ -79,7 +79,7 @@ public final class JSONSettingsStore: @unchecked Sendable {
 
     public static func defaultFileURL() -> URL {
         let home = FileManager.default.homeDirectoryForCurrentUser
-        return home.appendingPathComponent(".claudebar/settings.json")
+        return home.appendingPathComponent(".touchquota/settings.json")
     }
 
     // MARK: - File I/O

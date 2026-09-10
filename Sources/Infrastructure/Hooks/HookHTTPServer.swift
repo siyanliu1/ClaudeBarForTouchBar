@@ -14,7 +14,7 @@ public final class HookHTTPServer: @unchecked Sendable {
 
     /// Serial queue for synchronizing all mutable state.
     /// NWListener and NWConnection callbacks also run on this queue.
-    private let queue = DispatchQueue(label: "com.tddworks.claudebar.hookserver")
+    private let queue = DispatchQueue(label: "com.touchquota.app.hookserver")
 
     /// The actual port the server is listening on
     public private(set) var actualPort: UInt16 = 0
@@ -47,7 +47,7 @@ public final class HookHTTPServer: @unchecked Sendable {
 
     /// Brings a listener up on `port`.
     ///
-    /// When the port is already taken — a second copy of ClaudeBar, a leftover
+    /// When the port is already taken — a second copy of TouchQuota, a leftover
     /// listener, or a toggle off-then-on that raced the release — retry once on
     /// an OS-assigned port instead of dying silently. The hook script reads the
     /// real port back out of the discovery file, so any port works. Previously

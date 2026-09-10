@@ -8,7 +8,7 @@ struct PortDiscoveryTests {
     func `port file path is under dot-claude directory`() {
         let path = PortDiscovery.portFilePath
         #expect(path.contains(".claude"))
-        #expect(path.hasSuffix("claudebar-hook-port"))
+        #expect(path.hasSuffix("touchquota-hook-port"))
     }
 
     @Test

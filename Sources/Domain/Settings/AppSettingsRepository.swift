@@ -4,7 +4,7 @@ import Mockable
 /// Repository protocol for all app-level settings (display, sync, budget, etc.).
 /// Provider-specific settings live in `ProviderSettingsRepository` sub-protocols.
 ///
-/// Both protocols share one backing store (`~/.claudebar/settings.json`).
+/// Both protocols share one backing store (`~/.touchquota/settings.json`).
 /// `AppSettings` wraps this as an `@Observable` for SwiftUI.
 @Mockable
 public protocol AppSettingsRepository: Sendable {

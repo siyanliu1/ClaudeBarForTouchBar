@@ -1,10 +1,10 @@
 # Theme System Design
 
-This document describes the pluggable theme architecture in ClaudeBar.
+This document describes the pluggable theme architecture in TouchQuota.
 
 ## Overview
 
-ClaudeBar uses a **protocol-based theme system** that allows easy creation and registration of new themes. The design follows the same patterns used throughout the codebase (ISP, Protocol-Based DI).
+TouchQuota uses a **protocol-based theme system** that allows easy creation and registration of new themes. The design follows the same patterns used throughout the codebase (ISP, Protocol-Based DI).
 
 ## Architecture
 
@@ -204,7 +204,7 @@ enum ThemeMode: String, CaseIterable {
 
 ## Importing Terminal Themes
 
-ClaudeBar can import `.itermcolors` files to automatically generate themes from terminal color schemes. Over 450 pre-made schemes are available at [iTerm2-Color-Schemes](https://github.com/mbadolato/iTerm2-Color-Schemes).
+TouchQuota can import `.itermcolors` files to automatically generate themes from terminal color schemes. Over 450 pre-made schemes are available at [iTerm2-Color-Schemes](https://github.com/mbadolato/iTerm2-Color-Schemes).
 
 ### How It Works
 
@@ -217,7 +217,7 @@ ClaudeBar can import `.itermcolors` files to automatically generate themes from 
    - ANSI Blue → `accentSecondary`
    - Background → `backgroundGradient`, derived card/glass colors
    - Foreground → `textPrimary`/`textSecondary`/`textTertiary`
-3. **Persist** — Schemes are saved as JSON in `~/.claudebar/themes/`
+3. **Persist** — Schemes are saved as JSON in `~/.touchquota/themes/`
 4. **Register** — On launch, stored schemes are re-generated and registered in `ThemeRegistry`
 
 ### Files

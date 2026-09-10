@@ -238,7 +238,7 @@ Fixtures live as inline JSONL strings fed to `SessionJSONLParser.parse(content:)
 | 7 | Regression: known fixture → expected deduped cost/token totals | exact match |
 | 8 | Working-time/session-count unaffected by dedup of same-timestamp dups | stable value |
 
-Run: `xcodebuild test -scheme ClaudeBar-Workspace -workspace ClaudeBar.xcworkspace
+Run: `xcodebuild test -scheme TouchQuota-Workspace -workspace TouchQuota.xcworkspace
 -destination 'platform=macOS,arch=arm64'` (bypass Tuist test caching).
 
 ---

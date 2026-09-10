@@ -7,7 +7,7 @@ import Foundation
 struct UserDefaultsProviderSettingsRepositoryTests {
 
     // Use a unique suite name to avoid conflicts with other tests
-    private let testSuiteName = "com.claudebar.test.settings.\(UUID().uuidString)"
+    private let testSuiteName = "com.touchquota.test.settings.\(UUID().uuidString)"
 
     private func makeRepository() -> UserDefaultsProviderSettingsRepository {
         let defaults = UserDefaults(suiteName: testSuiteName)!

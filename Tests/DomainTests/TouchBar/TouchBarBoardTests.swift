@@ -10,7 +10,7 @@ struct TouchBarBoardTests {
 
     private func session(
         _ id: String,
-        cwd: String = "/repo/claudebar",
+        cwd: String = "/repo/touchquota",
         startedAt: TimeInterval = 0,
         phase: (inout ClaudeSession) -> Void = { _ in }
     ) -> ClaudeSession {
@@ -112,9 +112,9 @@ struct TouchBarBoardTests {
 
     @Test
     func `a tile is named after the repository the session runs in`() {
-        let board = build(sessions: [session("s", cwd: "/Users/me/code/claudebar")])
+        let board = build(sessions: [session("s", cwd: "/Users/me/code/touchquota")])
 
-        #expect(board.tiles.first?.name == "claudebar")
+        #expect(board.tiles.first?.name == "touchquota")
     }
 
     @Test

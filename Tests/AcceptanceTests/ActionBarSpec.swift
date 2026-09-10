@@ -42,7 +42,7 @@ struct ActionBarSpec {
 
         @Test
         func `Copilot dashboard URL is GitHub features page`() {
-            let suiteName = "com.claudebar.test.\(UUID().uuidString)"
+            let suiteName = "com.touchquota.test.\(UUID().uuidString)"
             let defaults = UserDefaults(suiteName: suiteName)!
             let settings = UserDefaultsProviderSettingsRepository(userDefaults: defaults)
             let copilot = CopilotProvider(probe: MockUsageProbe(), settingsRepository: settings)
@@ -57,7 +57,7 @@ struct ActionBarSpec {
 
         @Test
         func `Bedrock dashboard URL is AWS console`() {
-            let suiteName = "com.claudebar.test.\(UUID().uuidString)"
+            let suiteName = "com.touchquota.test.\(UUID().uuidString)"
             let defaults = UserDefaults(suiteName: suiteName)!
             let settings = UserDefaultsProviderSettingsRepository(userDefaults: defaults)
             let bedrock = BedrockProvider(probe: MockUsageProbe(), settingsRepository: settings)
@@ -66,7 +66,7 @@ struct ActionBarSpec {
 
         @Test
         func `Zai dashboard URL is Z.ai subscribe`() {
-            let suiteName = "com.claudebar.test.\(UUID().uuidString)"
+            let suiteName = "com.touchquota.test.\(UUID().uuidString)"
             let defaults = UserDefaults(suiteName: suiteName)!
             let settings = UserDefaultsProviderSettingsRepository(userDefaults: defaults)
             let zai = ZaiProvider(probe: MockUsageProbe(), settingsRepository: settings)

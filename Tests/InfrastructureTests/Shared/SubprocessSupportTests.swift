@@ -97,7 +97,7 @@ struct SubprocessSupportTests {
     func throwsForMissingExecutable() async {
         await #expect(throws: (any Error).self) {
             try await SubprocessSupport.run(
-                executablePath: "/nonexistent/claudebar-not-a-binary",
+                executablePath: "/nonexistent/touchquota-not-a-binary",
                 arguments: []
             )
         }

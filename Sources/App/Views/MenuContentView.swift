@@ -163,7 +163,7 @@ struct MenuContentView: View {
         .onChange(of: selectedProviderId) { _, newProviderId in
             // Refresh immediately when the user switches provider while the
             // dropdown is open. Periodic background refresh is owned by the
-            // app-lifetime loop in ClaudeBarApp, which restarts itself when the
+            // app-lifetime loop in TouchQuotaApp, which restarts itself when the
             // selected or menu-bar provider changes.
             Task {
                 await refresh(providerId: newProviderId)
@@ -255,7 +255,7 @@ struct MenuContentView: View {
 
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 4) {
-                    Text("ClaudeBar")
+                    Text("TouchQuota")
                         .font(.system(size: 18, weight: .bold, design: theme.fontDesign))
                         .foregroundStyle(theme.textPrimary)
 
@@ -719,7 +719,7 @@ struct MenuContentView: View {
             }
 
             // Show daily usage cards from JSONL session analysis (e.g., Claude Code)
-            // Controlled via Settings toggle or ~/.claudebar/settings.json
+            // Controlled via Settings toggle or ~/.touchquota/settings.json
             if settings.showDailyUsageCards, let report = snapshot.dailyUsageReport {
                 let baseDelay = Double(snapshot.quotas.count + 1) * 0.08
                 HStack(spacing: 10) {
@@ -903,7 +903,7 @@ struct MenuContentView: View {
                 }
             }
             .buttonStyle(.plain)
-            .help("Quit ClaudeBar")
+            .help("Quit TouchQuota")
             .keyboardShortcut("q")
         }
         .opacity(animateIn ? 1 : 0)

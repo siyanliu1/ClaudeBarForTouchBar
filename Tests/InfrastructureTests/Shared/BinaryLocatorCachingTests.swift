@@ -25,7 +25,7 @@ struct BinaryLocatorCachingTests {
 
     @Test("A missing tool resolves to nil consistently")
     func missingToolStaysNil() {
-        let name = "claudebar-definitely-not-a-real-binary"
+        let name = "touchquota-definitely-not-a-real-binary"
 
         #expect(BinaryLocator.which(name) == nil)
         #expect(BinaryLocator.which(name) == nil)
@@ -51,7 +51,7 @@ struct BinaryLocatorCachingTests {
     @Test("A non-executable absolute path does not resolve")
     func rejectsNonExecutableAbsolutePaths() {
         #expect(BinaryLocator.which("/etc/hosts") == nil)
-        #expect(BinaryLocator.which("/bin/claudebar-not-here") == nil)
+        #expect(BinaryLocator.which("/bin/touchquota-not-here") == nil)
     }
 
     @Test("Shell PATH is non-empty and stable across calls")

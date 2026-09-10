@@ -13,7 +13,7 @@ ASCII diagrams for documenting feature architecture before implementation.
 
 ## Layered Architecture
 
-### Three-Layer Pattern (ClaudeBar Standard)
+### Three-Layer Pattern (TouchQuota Standard)
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -46,7 +46,7 @@ ASCII diagrams for documenting feature architecture before implementation.
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                          ClaudeBar System                                │
+│                          TouchQuota System                                │
 ├─────────────────────────────────────────────────────────────────────────┤
 │                                                                          │
 │  ┌────────────────────────────────────────────────────────────────────┐ │
@@ -77,7 +77,7 @@ ASCII diagrams for documenting feature architecture before implementation.
 │  ┌────────────────────────────────────────────────────────────────────┐ │
 │  │                          App Layer                                  │ │
 │  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────────┐  │ │
-│  │  │ AppState     │  │ Views        │  │ ClaudeBarApp             │  │ │
+│  │  │ AppState     │  │ Views        │  │ TouchQuotaApp             │  │ │
 │  │  │ (@Observable)│  │              │  │ (registration)           │  │ │
 │  │  └──────────────┘  └──────────────┘  └──────────────────────────┘  │ │
 │  └────────────────────────────────────────────────────────────────────┘ │
@@ -222,7 +222,7 @@ Probe           Provider        Monitor         Alerter           UI
 | Sources/Infrastructure/CLI/NewProbe.swift    | Create   | Implements UsageProbe protocol       |
 | Sources/Domain/Provider/NewProvider.swift    | Create   | Implements AIProvider protocol       |
 | Tests/InfrastructureTests/NewProbeTests.swift| Create   | Probe behavior tests with mocks      |
-| Sources/App/ClaudeBarApp.swift               | Modify   | Register new provider                |
+| Sources/App/TouchQuotaApp.swift               | Modify   | Register new provider                |
 ```
 
 ---

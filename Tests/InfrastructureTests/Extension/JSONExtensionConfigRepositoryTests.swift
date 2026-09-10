@@ -7,12 +7,12 @@ import Testing
 struct JSONExtensionConfigRepositoryTests {
     private func makeTempStore() -> (JSONExtensionConfigRepository, URL) {
         let tempDir = FileManager.default.temporaryDirectory
-            .appending(path: "claudebar-test-\(UUID().uuidString)")
+            .appending(path: "touchquota-test-\(UUID().uuidString)")
         try? FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
         let settingsFile = tempDir.appending(path: "settings.json")
         let store = JSONExtensionConfigRepository(
             settingsStore: JSONSettingsStore(fileURL: settingsFile),
-            userDefaultsSuiteName: "com.claudebar.test.\(UUID().uuidString)"
+            userDefaultsSuiteName: "com.touchquota.test.\(UUID().uuidString)"
         )
         return (store, tempDir)
     }
@@ -71,9 +71,9 @@ struct JSONExtensionConfigRepositoryTests {
 
     @Test
     func `stores and retrieves a secret value via UserDefaults`() {
-        let suiteName = "com.claudebar.test.\(UUID().uuidString)"
+        let suiteName = "com.touchquota.test.\(UUID().uuidString)"
         let tempDir = FileManager.default.temporaryDirectory
-            .appending(path: "claudebar-test-\(UUID().uuidString)")
+            .appending(path: "touchquota-test-\(UUID().uuidString)")
         try? FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: tempDir) }
 
@@ -103,9 +103,9 @@ struct JSONExtensionConfigRepositoryTests {
 
     @Test
     func `removes secret when set to nil`() {
-        let suiteName = "com.claudebar.test.\(UUID().uuidString)"
+        let suiteName = "com.touchquota.test.\(UUID().uuidString)"
         let tempDir = FileManager.default.temporaryDirectory
-            .appending(path: "claudebar-test-\(UUID().uuidString)")
+            .appending(path: "touchquota-test-\(UUID().uuidString)")
         try? FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: tempDir) }
 
@@ -126,9 +126,9 @@ struct JSONExtensionConfigRepositoryTests {
 
     @Test
     func `allValues returns all stored values for an extension`() {
-        let suiteName = "com.claudebar.test.\(UUID().uuidString)"
+        let suiteName = "com.touchquota.test.\(UUID().uuidString)"
         let tempDir = FileManager.default.temporaryDirectory
-            .appending(path: "claudebar-test-\(UUID().uuidString)")
+            .appending(path: "touchquota-test-\(UUID().uuidString)")
         try? FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
         defer {
             try? FileManager.default.removeItem(at: tempDir)

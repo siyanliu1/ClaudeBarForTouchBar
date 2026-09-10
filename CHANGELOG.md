@@ -1,14 +1,18 @@
 # Changelog
 
-All notable changes to ClaudeBar will be documented in this file.
+All notable changes to TouchQuota will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+- The app is now **TouchQuota**. The old name collided with the upstream project this fork is built on: both shipped the bundle identifier `com.tddworks.claudebar`, so macOS treated them as the same app, and this fork's update feed still pointed at upstream's appcast — an auto-update would have replaced the Touch Bar build with upstream's. The bundle identifier is now `com.touchquota.app` and the feed points at this repository's own GitHub Pages site.
+- Everything the app owns on disk moved with the name: settings are read from `~/.touchquota/settings.json` (themes and extensions alongside it), logs are written to `~/Library/Logs/TouchQuota/TouchQuota.log`, the Claude Code hook is marked `__touchquota_hook` and discovers its port through `~/.claude/touchquota-hook-port`, and extension config is injected as `TOUCHQUOTA_*` environment variables. Nothing migrates automatically — this fork has never shipped a release, so there is no installed copy to migrate from. Anyone running it from source should copy `~/.claudebar` to `~/.touchquota` and reinstall the hook from Settings.
+
 ### Added
-- The Touch Bar board is live: turn on **Settings › General › Touch Bar Board** and a ClaudeBar item appears in the Control Strip, showing the most urgent session's phase as a dot and your Claude 5h percentage as a number. Tapping it opens a board of one tile per Claude Code session — repository, context percentage and what that session is doing — with Claude and Codex quota percentages down the right. A button switches between the compact board and one that fills the whole bar; the choice is remembered. Tapping the quota numbers refreshes Claude and Codex. Requires a Mac with a Touch Bar; not present in Mac App Store builds. (#1)
+- The Touch Bar board is live: turn on **Settings › General › Touch Bar Board** and a TouchQuota item appears in the Control Strip, showing the most urgent session's phase as a dot and your Claude 5h percentage as a number. Tapping it opens a board of one tile per Claude Code session — repository, context percentage and what that session is doing — with Claude and Codex quota percentages down the right. A button switches between the compact board and one that fills the whole bar; the choice is remembered. Tapping the quota numbers refreshes Claude and Codex. Requires a Mac with a Touch Bar; not present in Mac App Store builds. (#1)
 - Session context percentages and the running tool are read from Claude Code's transcript as sessions work, driven by hook events and, while the board is open, a 3-second tick. (#1)
 - The Touch Bar state machine: a tray item in the Control Strip that expands into the board, a toggle between the compact and wide shapes, and a close that works in both. It notices when the board goes away without being asked — the system close box, another app taking the bar, the display sleeping — and re-asserts the tray item after the Mac wakes, which can otherwise evict it silently. (#1)
 - The Touch Bar board's views: a 104 × 26 pt tile per session with a phase-coloured bar, repository name, context percentage and one line of text; the two quota lines with every number coloured by its own status; the `NSScrubber` that scrolls the tiles; and the board that assembles them at either width. Text is static for now — the marquee and the rotation between candidate lines come next. (#1)
@@ -23,10 +27,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `JSONSettingsRepository` now conforms to `MultiAccountSettingsRepository`, persisting per-provider accounts under `providers.{id}.accounts` and the active account under `providers.{id}.activeAccountId`. Nothing changes for existing installs: a provider with no `accounts` key reads back an empty list, which is the single-account path, so no migration runs. Removing the active account clears the active pointer rather than leaving it dangling at an account that is gone. (#164)
 
 ### Fixed
-- Quota alerts work on a default install. Notifications are posted from the monitor's refresh path, but the dropdown probed providers directly and never went through it — and background refresh is off by default, so the dropdown was the only refresh most people ever ran. ClaudeBar asked for notification permission on first open and could then never post a single quota alert, however far a quota fell.
-- A settings file ClaudeBar cannot parse is no longer replaced. A hand-edit that left a trailing comma made every setting read back as its default, so the app looked freshly installed — and the next toggle you touched wrote that empty state over the file. Saving is now refused until the file is fixed, and the log says which file it is.
-- Claude Code hook events larger than about 1 KB are no longer dropped. `curl` holds a body that size back until the server says it may send, and ClaudeBar never answered, then replied and closed the connection after reading only the headers. Every `Stop` event carrying a long reply was lost this way, so turns appeared never to end.
-- The hook server retries on another port when its usual one is taken. A busy port — a second copy of ClaudeBar, or switching hooks off and straight back on — used to leave the toggle on and the pane still reporting hooks as installed, while no session ever appeared again.
+- Quota alerts work on a default install. Notifications are posted from the monitor's refresh path, but the dropdown probed providers directly and never went through it — and background refresh is off by default, so the dropdown was the only refresh most people ever ran. TouchQuota asked for notification permission on first open and could then never post a single quota alert, however far a quota fell.
+- A settings file TouchQuota cannot parse is no longer replaced. A hand-edit that left a trailing comma made every setting read back as its default, so the app looked freshly installed — and the next toggle you touched wrote that empty state over the file. Saving is now refused until the file is fixed, and the log says which file it is.
+- Claude Code hook events larger than about 1 KB are no longer dropped. `curl` holds a body that size back until the server says it may send, and TouchQuota never answered, then replied and closed the connection after reading only the headers. Every `Stop` event carrying a long reply was lost this way, so turns appeared never to end.
+- The hook server retries on another port when its usual one is taken. A busy port — a second copy of TouchQuota, or switching hooks off and straight back on — used to leave the toggle on and the pane still reporting hooks as installed, while no session ever appeared again.
 - "Needs you" stays on screen. Granting a permission fires no hook, so a blocked session is only known to be working again by its transcript growing — but Claude Code writes the record that caused the block before it asks, so the very next read cancelled the state within a fraction of a second of it appearing.
 - A Claude Code session killed with its terminal window no longer shows as active forever. The retirement pass was only ticked by the Touch Bar board, which is off by default, so nothing cleared the menu-bar glyph or the popover card until the app was relaunched.
 - Turning the menu-bar percentage and duration readouts off actually removes the number. The last value stayed frozen in the menu bar until the next launch, because "switched off" and "momentarily missing" looked the same to the code that bridges a gap in the data.
@@ -1062,7 +1066,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Menu bar interface with quota display
 - Automatic refresh every 5 minutes
 
-[Unreleased]: https://github.com/tddworks/ClaudeBar/compare/v0.4.88...HEAD
+[Unreleased]: https://github.com/siyanliu1/TouchQuota/compare/v0.4.88...HEAD
 [0.4.88]: https://github.com/tddworks/ClaudeBar/compare/v0.4.87...v0.4.88
 [0.4.87]: https://github.com/tddworks/ClaudeBar/compare/v0.4.86...v0.4.87
 [0.4.86]: https://github.com/tddworks/ClaudeBar/compare/v0.4.85...v0.4.86

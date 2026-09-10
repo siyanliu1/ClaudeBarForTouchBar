@@ -10,10 +10,10 @@ public final class UserDefaultsCredentialRepository: CredentialRepository, @unch
     /// Creates a credential repository with the specified UserDefaults instance.
     /// - Parameters:
     ///   - defaults: The UserDefaults instance to use (defaults to .standard)
-    ///   - keyPrefix: A prefix for all keys to avoid collisions (defaults to "com.claudebar.credentials.")
+    ///   - keyPrefix: A prefix for all keys to avoid collisions (defaults to "com.touchquota.credentials.")
     public init(
         defaults: UserDefaults = .standard,
-        keyPrefix: String = "com.claudebar.credentials."
+        keyPrefix: String = "com.touchquota.credentials."
     ) {
         self.defaults = defaults
         self.keyPrefix = keyPrefix

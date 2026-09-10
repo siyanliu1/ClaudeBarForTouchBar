@@ -84,7 +84,7 @@ public final class DefaultCodexRPCClient: CodexRPCClient, @unchecked Sendable {
 
         // Initialize RPC connection
         _ = try await request(transport: activeTransport, method: "initialize", params: [
-            "clientInfo": ["name": "claudebar", "version": "1.0.0"]
+            "clientInfo": ["name": "touchquota", "version": "1.0.0"]
         ])
         try sendNotification(transport: activeTransport, method: "initialized")
 

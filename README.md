@@ -1,14 +1,13 @@
-# ClaudeBar
+# TouchQuota
 
-[![Build](https://github.com/tddworks/ClaudeBar/actions/workflows/build.yml/badge.svg)](https://github.com/tddworks/ClaudeBar/actions/workflows/build.yml)
-[![Tests](https://github.com/tddworks/ClaudeBar/actions/workflows/tests.yml/badge.svg)](https://github.com/tddworks/ClaudeBar/actions/workflows/tests.yml)
-[![codecov](https://codecov.io/gh/tddworks/ClaudeBar/graph/badge.svg)](https://codecov.io/gh/tddworks/ClaudeBar)
-[![Latest Release](https://img.shields.io/github/v/release/tddworks/ClaudeBar)](https://github.com/tddworks/ClaudeBar/releases/latest)
+[![Build](https://github.com/siyanliu1/TouchQuota/actions/workflows/build.yml/badge.svg)](https://github.com/siyanliu1/TouchQuota/actions/workflows/build.yml)
+[![Tests](https://github.com/siyanliu1/TouchQuota/actions/workflows/tests.yml/badge.svg)](https://github.com/siyanliu1/TouchQuota/actions/workflows/tests.yml)
 [![Swift 6.2](https://img.shields.io/badge/Swift-6.2-orange.svg)](https://swift.org)
 [![Platform](https://img.shields.io/badge/Platform-macOS%2015-blue.svg)](https://developer.apple.com)
-[![Homebrew](https://img.shields.io/badge/Homebrew-Install-brightgreen.svg)](https://formulae.brew.sh/cask/claudebar)
 
 A macOS menu bar application that monitors AI coding assistant usage quotas. Keep track of your Claude, Codex, Gemini, GitHub Copilot, Antigravity, Z.ai, Kimi, Kiro, Amp, OpenCode Go, Oh My Pi, Grok, and more at a glance.
+
+TouchQuota is a fork of [tddworks/ClaudeBar](https://github.com/tddworks/ClaudeBar) that adds native MacBook Pro Touch Bar support.
 
 <table align="center">
   <tr>
@@ -23,7 +22,7 @@ A macOS menu bar application that monitors AI coding assistant usage quotas. Kee
 
 ## Sponsors
 
-Some companies support ClaudeBar's open source development through [GitHub Sponsors](https://github.com/sponsors/hanrw). We'd like to give a special mention to the following sponsors:
+TouchQuota has no sponsors of its own. The upstream project, [ClaudeBar](https://github.com/tddworks/ClaudeBar), is supported through [GitHub Sponsors](https://github.com/sponsors/hanrw), and we'd like to give a special mention to the following sponsors of that work:
 
 <table>
   <tbody>
@@ -41,7 +40,7 @@ Some companies support ClaudeBar's open source development through [GitHub Spons
   </tbody>
 </table>
 
-> **Editorial independence:** Sponsorship does not influence which providers ClaudeBar supports, how they are ordered in the app, or how their quota data is reported.
+> **Editorial independence:** Sponsorship does not influence which providers TouchQuota supports, how they are ordered in the app, or how their quota data is reported.
 
 ## Features
 
@@ -88,10 +87,10 @@ Kimi supports two probe modes, configurable in **Settings > Kimi Configuration**
 
 **CLI Mode (Recommended)** - Launches the interactive `kimi` CLI and sends `/usage` to fetch quota data. Requires `kimi` CLI installed (`uv tool install kimi-cli`). No Full Disk Access needed.
 
-**API Mode** - Calls the Kimi API directly using browser cookie authentication. Requires **Full Disk Access** for ClaudeBar to read the `kimi-auth` browser cookie:
+**API Mode** - Calls the Kimi API directly using browser cookie authentication. Requires **Full Disk Access** for TouchQuota to read the `kimi-auth` browser cookie:
 1. Open **System Settings** > **Privacy & Security** > **Full Disk Access**
-2. Toggle **ClaudeBar** on (or click `+` and add it)
-3. Restart ClaudeBar
+2. Toggle **TouchQuota** on (or click `+` and add it)
+3. Restart TouchQuota
 
 You can also set the `KIMI_AUTH_TOKEN` environment variable to bypass cookie reading in API mode.
 
@@ -107,35 +106,27 @@ Kiro monitors AWS Kiro (formerly CodeWhisperer) usage through the `kiro-cli` com
 
 ## Installation
 
-### Homebrew
+### Download
 
-Install via [Homebrew](https://brew.sh).
+Download the latest release from [GitHub Releases](https://github.com/siyanliu1/TouchQuota/releases/latest):
 
-```bash
-brew install --cask claudebar
-```
-
-### Download (Recommended)
-
-Download the latest release from [GitHub Releases](https://github.com/tddworks/ClaudeBar/releases/latest):
-
-- **DMG**: Open and drag ClaudeBar.app to Applications
-- **ZIP**: Unzip and move ClaudeBar.app to Applications
+- **DMG**: Open and drag TouchQuota.app to Applications
+- **ZIP**: Unzip and move TouchQuota.app to Applications
 
 Both are code-signed and notarized for Gatekeeper.
 
 ### Build from Source
 
 ```bash
-git clone https://github.com/tddworks/ClaudeBar.git
-cd ClaudeBar
+git clone https://github.com/siyanliu1/TouchQuota.git
+cd TouchQuota
 
 # Install Tuist (if not installed)
 brew install tuist
 
 # Install dependencies and build
 tuist install
-tuist build ClaudeBar -C Release
+tuist build TouchQuota -C Release
 ```
 
 ## Usage
@@ -144,7 +135,7 @@ After building, open the generated Xcode workspace and run the app:
 
 ```bash
 tuist generate
-open ClaudeBar.xcworkspace
+open TouchQuota.xcworkspace
 ```
 
 Then press `Cmd+R` in Xcode to run. The app will appear in your menu bar. Click to view quota details for each provider.
@@ -164,7 +155,7 @@ tuist install
 
 # Generate Xcode project and open
 tuist generate
-open ClaudeBar.xcworkspace
+open TouchQuota.xcworkspace
 ```
 
 ### Build & Test
@@ -180,7 +171,7 @@ tuist test
 tuist test --result-bundle-path TestResults.xcresult -- -enableCodeCoverage YES
 
 # Build release configuration
-tuist build ClaudeBar -C Release
+tuist build TouchQuota -C Release
 ```
 
 ### SwiftUI Previews
@@ -191,7 +182,7 @@ After opening in Xcode, SwiftUI previews will work with `Cmd+Option+Return`. The
 
 > **Full documentation:** [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 
-ClaudeBar uses a **layered architecture** with `QuotaMonitor` as the single source of truth:
+TouchQuota uses a **layered architecture** with `QuotaMonitor` as the single source of truth:
 
 | Layer | Purpose |
 |-------|---------|
@@ -209,7 +200,7 @@ ClaudeBar uses a **layered architecture** with `QuotaMonitor` as the single sour
 
 ## Import Terminal Theme
 
-Match ClaudeBar's appearance to your terminal. Import any `.itermcolors` file:
+Match TouchQuota's appearance to your terminal. Import any `.itermcolors` file:
 
 1. Open **Settings** (gear icon)
 2. Click **Import .itermcolors**
@@ -217,7 +208,7 @@ Match ClaudeBar's appearance to your terminal. Import any `.itermcolors` file:
 
 450+ pre-made schemes available at [iTerm2-Color-Schemes](https://github.com/mbadolato/iTerm2-Color-Schemes/tree/master/schemes).
 
-Imported themes are saved in `~/.claudebar/themes/` and persist across restarts.
+Imported themes are saved in `~/.touchquota/themes/` and persist across restarts.
 
 ## Contributing
 

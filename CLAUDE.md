@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-ClaudeBar is a macOS menu bar application that monitors AI coding assistant usage quotas (Claude, Codex, Gemini, GitHub Copilot, Antigravity, Z.ai, AWS Bedrock, Amp Code, Kimi, OpenCode Go, Oh My Pi, Grok). It probes CLI tools and APIs to fetch quota information and displays it in a menu bar interface with system notifications for status changes.
+TouchQuota is a macOS menu bar application that monitors AI coding assistant usage quotas (Claude, Codex, Gemini, GitHub Copilot, Antigravity, Z.ai, AWS Bedrock, Amp Code, Kimi, OpenCode Go, Oh My Pi, Grok). It probes CLI tools and APIs to fetch quota information and displays it in a menu bar interface with system notifications for status changes.
 
 ## Build & Test Commands
 
@@ -21,7 +21,7 @@ tuist install
 
 # Generate Xcode project and open
 tuist generate
-open ClaudeBar.xcworkspace
+open TouchQuota.xcworkspace
 ```
 
 ### Build & Test
@@ -40,7 +40,7 @@ tuist test DomainTests
 tuist test --result-bundle-path TestResults.xcresult -- -enableCodeCoverage YES
 
 # Build release configuration
-tuist build ClaudeBar -C Release
+tuist build TouchQuota -C Release
 ```
 
 **Key files:**
@@ -105,7 +105,7 @@ ProviderSettingsRepository (base)
 
 ### Settings Storage
 
-All settings are persisted in a single JSON file (`~/.claudebar/settings.json`) via `JSONSettingsRepository`.
+All settings are persisted in a single JSON file (`~/.touchquota/settings.json`) via `JSONSettingsRepository`.
 
 ```
 Sources/Infrastructure/Storage/
@@ -169,7 +169,7 @@ The skill will guide you through:
 2. **Probe Behavior Tests** → Test detection and error handling with mocks
 3. **Probe Implementation** → Implement `UsageProbe` in `Sources/Infrastructure/CLI/`
 4. **Provider Class** → Create `AIProvider` in `Sources/Domain/Provider/`
-5. **Registration** → Add to `ClaudeBarApp.init()` providers array
+5. **Registration** → Add to `TouchQuotaApp.init()` providers array
 
 **Repository Selection (ISP):**
 - **Simple provider** (no special config) → Use base `ProviderSettingsRepository`
@@ -261,7 +261,7 @@ Or use the manual workflow dispatch in GitHub Actions with version input.
 The app uses a **dual-output logging system** via `AppLog` in `Sources/Infrastructure/Logging/`:
 
 - **OSLog** (for developers): Full privacy controls, visible in Console.app
-- **File** (for users): Persistent logs at `~/Library/Logs/ClaudeBar/ClaudeBar.log`
+- **File** (for users): Persistent logs at `~/Library/Logs/TouchQuota/TouchQuota.log`
 
 ### AppLog Categories
 
@@ -305,8 +305,8 @@ For sensitive debugging that needs OSLog privacy controls, use OSLog directly.
 
 ### File Logging Details
 
-- **Location**: `~/Library/Logs/ClaudeBar/ClaudeBar.log`
-- **Rotation**: Rotates to `ClaudeBar.old.log` at 5MB
+- **Location**: `~/Library/Logs/TouchQuota/TouchQuota.log`
+- **Rotation**: Rotates to `TouchQuota.old.log` at 5MB
 - **Format**: `[YYYY-MM-DD HH:MM:SS] [LEVEL] [category] message`
 - **Access**: Settings → "Open Logs Folder" button
 
@@ -315,25 +315,25 @@ For sensitive debugging that needs OSLog privacy controls, use OSLog directly.
 **File logs (for users):**
 ```bash
 # Open in Finder (or use Settings → Open Logs Folder)
-open ~/Library/Logs/ClaudeBar/
+open ~/Library/Logs/TouchQuota/
 
 # Tail the log
-tail -f ~/Library/Logs/ClaudeBar/ClaudeBar.log
+tail -f ~/Library/Logs/TouchQuota/TouchQuota.log
 ```
 
 **OSLog (for developers):**
 ```bash
 # Console.app filter
-subsystem:com.tddworks.ClaudeBar
+subsystem:com.touchquota.app
 
 # Terminal - show all levels (including debug)
-log show --predicate 'subsystem == "com.tddworks.ClaudeBar"' --info --debug --last 1h
+log show --predicate 'subsystem == "com.touchquota.app"' --info --debug --last 1h
 
 # Terminal - errors only
-log show --predicate 'subsystem == "com.tddworks.ClaudeBar" AND messageType == error' --last 1h
+log show --predicate 'subsystem == "com.touchquota.app" AND messageType == error' --last 1h
 
 # Live stream (for debugging)
-log stream --predicate 'subsystem == "com.tddworks.ClaudeBar"' --info --debug
+log stream --predicate 'subsystem == "com.touchquota.app"' --info --debug
 ```
 
 ### Debugging Probe Issues
@@ -342,10 +342,10 @@ When a probe fails (e.g., `claude /usage`), all errors are logged with context:
 
 ```bash
 # File log - grep for probe issues
-grep -i "probe" ~/Library/Logs/ClaudeBar/ClaudeBar.log
+grep -i "probe" ~/Library/Logs/TouchQuota/TouchQuota.log
 
 # OSLog - probe-specific logs
-log show --predicate 'subsystem == "com.tddworks.ClaudeBar" AND category == "probes"' --info --debug --last 1h
+log show --predicate 'subsystem == "com.touchquota.app" AND category == "probes"' --info --debug --last 1h
 ```
 
 Common error patterns logged:

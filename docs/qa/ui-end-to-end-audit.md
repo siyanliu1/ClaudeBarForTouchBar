@@ -47,8 +47,8 @@ the one path the UI does not use.
 
 The MAS configuration enables `com.apple.security.app-sandbox` and grants only
 `network.client` and `automation.apple-events`. Nothing else. The app spawns CLI
-binaries, reads `~/.claude` and `~/.claudebar`, writes
-`~/.claudebar/settings.json`, and runs a loopback HTTP server for hooks — that
+binaries, reads `~/.claude` and `~/.touchquota`, writes
+`~/.touchquota/settings.json`, and runs a loopback HTTP server for hooks — that
 needs file access it does not have, and `network.server`, which is absent. In a
 sandbox `homeDirectoryForCurrentUser` returns the container, so even settings go
 to the wrong place.
@@ -79,7 +79,7 @@ So the feature fails in both directions:
 `docs/appcast.xml` back after each release.
 
 ### 4. The Touch Bar's "Needs you" state is cancelled a moment after it appears
-`SessionMonitor.swift:85-88` · `ClaudeBarApp.swift:239-243`
+`SessionMonitor.swift:85-88` · `TouchQuotaApp.swift:239-243`
 
 `updateUsage` treats a grown transcript as proof the session resumed:
 
@@ -106,7 +106,7 @@ beyond *that*.
 The installer writes this into `~/.claude/settings.json`:
 
 ```sh
-__claudebar_hook() { PORT=$(cat "$HOME/.claude/claudebar-hook-port" ...); cat | curl -s -X POST "http://localhost:${PORT}/hook" -d @- ... & }
+__touchquota_hook() { PORT=$(cat "$HOME/.claude/touchquota-hook-port" ...); cat | curl -s -X POST "http://localhost:${PORT}/hook" -d @- ... & }
 ```
 
 curl adds `Expect: 100-continue` for `-d` bodies over ~1KB and withholds the body
@@ -190,7 +190,7 @@ write and tell the user which file to fix.
 | Overview mode paints a green HEALTHY badge on providers that have no data, directly above their error row | `MenuContentView.swift:488` |
 | Sidebar asserts "up to date" with a green dot before any update check has ever run | `SettingsSidebarView.swift:22` |
 | Sync & Alerts shows the cadence the user picked while the loop polls up to 30× slower (API floor × battery multiplier) | `QuotaMonitor.swift:486` |
-| "Claude Code Finished" reports whichever session ended most recently, not the one that ended | `ClaudeBarApp.swift:271` |
+| "Claude Code Finished" reports whichever session ended most recently, not the one that ended | `TouchQuotaApp.swift:271` |
 | `HookInstaller.InstallerError` is not `LocalizedError`, so the message naming the corrupt file is replaced by an opaque Cocoa error | `HookInstaller.swift:127` |
 | App Store users are told "Updates unavailable in debug builds" in a shipping release | `UpdatesPane.swift:41` |
 
@@ -206,10 +206,10 @@ write and tell the user which file to fix.
 | Restarting the background loop stacks concurrent probes of the same provider; the superseded probe still wins | `QuotaMonitor.swift:86` |
 | A failed Share-pass overlay is bound to long-lived provider state, so it re-blocks the whole popup on every reopen until dismissed | `MenuContentView.swift:116` |
 | Notch `hide()` leaves a stale panel-sized interactive rect, so it can reappear already expanded and swallow menu-bar clicks | `NotchWindowController.swift:111` |
-| Notch hover is driven only by a *global* mouse monitor, so hover is dead whenever ClaudeBar is frontmost | `NotchWindowController.swift:175` |
+| Notch hover is driven only by a *global* mouse monitor, so hover is dead whenever TouchQuota is frontmost | `NotchWindowController.swift:175` |
 | Custom web card reloads its page on every SwiftUI update | `CustomWebCardView.swift:78` |
 | Extension sections are merged in probe-completion order, so rows reshuffle on every refresh | `ExtensionProvider.swift:83` |
-| Turning hooks OFF never clears the session state hooks created | `ClaudeBarApp.swift:252` |
+| Turning hooks OFF never clears the session state hooks created | `TouchQuotaApp.swift:252` |
 
 ## Confirmed — numbers that disagree with each other
 
@@ -345,7 +345,7 @@ much as a finding.
 ## Why the test suite could not catch any of this
 
 `Project.swift:165-181` — the `AcceptanceTests` target depends on `Domain`,
-`Infrastructure` and `Mockable`. It has **no dependency on the `ClaudeBar` app
+`Infrastructure` and `Mockable`. It has **no dependency on the `TouchQuota` app
 target**. All ~14,600 lines of `Sources/App` are unreachable from the acceptance
 suite by construction, and that is where nearly every finding above lives.
 
@@ -357,7 +357,7 @@ Two consequences visible in the suite today:
    App layer.
 2. **Six config specs prove persistence through a class the app never
    instantiates.** They drive `UserDefaultsProviderSettingsRepository`;
-   production wires `JSONSettingsRepository.shared` (`ClaudeBarApp.swift:69`).
+   production wires `JSONSettingsRepository.shared` (`TouchQuotaApp.swift:69`).
    So `copilot.manualUsageValue` / `manualUsageIsPercent` /
    `manualOverrideEnabled` have no round-trip coverage anywhere, while
    `CopilotConfigSpec` reads as though they do.
@@ -366,7 +366,7 @@ Two consequences visible in the suite today:
 sharpest illustration: it drives `monitor.refresh`, the one refresh path the UI
 never takes.
 
-**The fix that unlocks the rest:** add `.target(name: "ClaudeBar")` to the
+**The fix that unlocks the rest:** add `.target(name: "TouchQuota")` to the
 `AcceptanceTests` dependencies, or add an `AppTests` target. The drivers are
 already written for it — they take injected `monitor` / `settings` /
 `sessionMonitor` and expose imperative start/stop, so they can be driven

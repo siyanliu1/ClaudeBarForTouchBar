@@ -37,10 +37,10 @@ final class TouchBarController {
     var onVisibilityChange: ((Bool) -> Void)?
 
     private static let trayIdentifier = NSTouchBarItem.Identifier(
-        "com.tddworks.claudebar.touchbar.tray"
+        "com.touchquota.app.touchbar.tray"
     )
     private static let boardIdentifier = NSTouchBarItem.Identifier(
-        "com.tddworks.claudebar.touchbar.board"
+        "com.touchquota.app.touchbar.board"
     )
 
     private let trayItem = NSCustomTouchBarItem(identifier: TouchBarController.trayIdentifier)
@@ -223,7 +223,7 @@ final class TouchBarController {
             ]
         )
         trayButton.image = dotImage(for: tray)
-        trayButton.toolTip = "ClaudeBar — tap to open the Touch Bar board"
+        trayButton.toolTip = "TouchQuota — tap to open the Touch Bar board"
     }
 
     private func trayTitle(for quota: TouchBarBoard.QuotaCell) -> String {

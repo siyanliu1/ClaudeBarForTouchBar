@@ -41,8 +41,8 @@ on:
         default: false
 
 env:
-  APP_NAME: ClaudeBar
-  BUNDLE_ID: com.tddworks.claudebar
+  APP_NAME: TouchQuota
+  BUNDLE_ID: com.touchquota.app
   APP_ID: ${{ vars.APP_ID }}
   BETA_GROUP_ID: ${{ vars.BETA_GROUP_ID }}
 
@@ -150,7 +150,7 @@ jobs:
       - name: Install Provisioning Profile
         # ASC credentials are set globally by "Setup ASC credentials" — no extra secret needed.
         # Signing settings (CODE_SIGN_STYLE, CODE_SIGN_IDENTITY, PROVISIONING_PROFILE_SPECIFIER)
-        # are in Project.swift Release config so they only apply to the ClaudeBar target.
+        # are in Project.swift Release config so they only apply to the TouchQuota target.
         run: ./scripts/install-mas-profile.sh
 
       - name: Inject MAS Signing into Generated Project
@@ -161,12 +161,12 @@ jobs:
         run: |
           ruby - <<'RUBY'
           require 'xcodeproj'
-          project = Xcodeproj::Project.open('ClaudeBar.xcodeproj')
-          target  = project.targets.find { |t| t.name == 'ClaudeBar' }
+          project = Xcodeproj::Project.open('TouchQuota.xcodeproj')
+          target  = project.targets.find { |t| t.name == 'TouchQuota' }
           config  = target.build_configurations.find { |c| c.name == 'Release' }
           config.build_settings['CODE_SIGN_STYLE']                      = 'Manual'
           config.build_settings['CODE_SIGN_IDENTITY']                   = '3rd Party Mac Developer Application'
-          config.build_settings['PROVISIONING_PROFILE_SPECIFIER']       = 'ClaudeBar Mac App Store'
+          config.build_settings['PROVISIONING_PROFILE_SPECIFIER']       = 'TouchQuota Mac App Store'
           config.build_settings['CODE_SIGN_ENTITLEMENTS']               = 'Sources/App/entitlements.mas.plist'
           config.build_settings['SWIFT_ACTIVE_COMPILATION_CONDITIONS']  = ''
           # Remove Sparkle from all build phases so it isn't linked or bundled
@@ -217,8 +217,8 @@ jobs:
             <string>3rd Party Mac Developer Installer</string>
             <key>provisioningProfiles</key>
             <dict>
-              <key>com.tddworks.claudebar</key>
-              <string>ClaudeBar Mac App Store</string>
+              <key>com.touchquota.app</key>
+              <string>TouchQuota Mac App Store</string>
             </dict>
           </dict>
           </plist>
