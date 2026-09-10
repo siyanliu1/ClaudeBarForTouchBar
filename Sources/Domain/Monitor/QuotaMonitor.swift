@@ -103,11 +103,19 @@ public final class QuotaMonitor {
 
     /// Refreshes one provider the way the dropdown does. See
     /// ``refreshAllInteractively()``.
-    public func refreshInteractively(providerId: String) async {
+    ///
+    /// Returns whether the probe actually ran. "Save & Test Connection" reads
+    /// `lastError` and `snapshot` afterwards to decide what to tell the user,
+    /// and a provider already mid-probe is skipped here — leaving the *previous*
+    /// run's clean snapshot in place, which reads exactly like the new
+    /// credentials passing. Callers that report a verdict must check this.
+    @discardableResult
+    public func refreshInteractively(providerId: String) async -> Bool {
         guard let provider = providers.provider(id: providerId), !provider.isSyncing else {
-            return
+            return false
         }
         await probeAndRecord(provider)
+        return true
     }
 
     /// Probes unconditionally and feeds the result through the same alerting

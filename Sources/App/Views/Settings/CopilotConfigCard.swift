@@ -595,7 +595,12 @@ struct CopilotConfigCard: View {
         // refreshInteractively, not refresh: the latter skips a provider that
         // reports itself unavailable, so with no credentials configured the
         // probe never ran, lastError stayed nil — and this reported success.
-        await monitor.refreshInteractively(providerId: "copilot")
+        // A skipped probe leaves the previous run's snapshot in place, which
+        // the checks below cannot tell apart from these credentials working.
+        guard await monitor.refreshInteractively(providerId: "copilot") else {
+            copilotTestResult = "Not tested: another refresh is already running — try again in a moment"
+            return
+        }
 
         let provider = monitor.provider(for: "copilot")
         if let error = provider?.lastError {

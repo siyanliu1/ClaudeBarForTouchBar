@@ -100,6 +100,9 @@ struct ProviderIconView: View {
         case "omp": return "terminal.fill"
         case "grok": return "line.diagonal"
         case "vercel-gateway": return "triangle.fill"
+        // Matches ProviderVisualIdentityLookup's symbol for alibaba. There is no
+        // AlibabaIcon asset, so this fallback is what actually renders.
+        case "alibaba": return "a.square.fill"
         default: return "questionmark"
         }
     }

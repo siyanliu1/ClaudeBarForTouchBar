@@ -26,6 +26,9 @@ final class SessionUsageSync {
     private var reading: Set<String> = []
 
     private var timer: Timer?
+    /// Whether the board asked for polling. Kept apart from the timer because
+    /// the board is no longer the only reason to poll.
+    private var boardWantsPolling = false
 
     private enum Timing {
         /// How often a visible board re-reads the transcripts of the sessions
@@ -45,19 +48,39 @@ final class SessionUsageSync {
         // screen — so with the board closed, which is most of the time, nothing
         // would ever release a finished session's read position.
         forgetSessionsNotIn(Set(sessionMonitor.sessions.map(\.id)))
+        defer { updatePolling() }
         guard let session = sessionMonitor.sessions.first(where: { $0.id == sessionId }) else { return }
         read(session)
     }
 
-    /// Starts or stops the 3-second tick.
+    /// The board asking for the 3-second tick.
     ///
     /// Only worth running while the board is actually on screen: a context
     /// percentage nobody is looking at is a file read for nothing, and this can
     /// run for as long as the Mac is awake.
     func setPolling(_ enabled: Bool) {
+        boardWantsPolling = enabled
+        updatePolling()
+    }
+
+    /// Runs the tick while the board wants it **or** any session is blocked on
+    /// the user.
+    ///
+    /// A blocked session has to be followed whatever the board is doing.
+    /// Granting a permission fires no hook, so growth past
+    /// ``ClaudeSession/awaitingInputBaselineTokens`` is the only thing that can
+    /// clear "Needs you" — and the board defaults to off, so without this the
+    /// only remaining reader is the next hook event, leaving the menu bar,
+    /// popover and notch claiming the session still needs the user for the rest
+    /// of the turn.
+    private func updatePolling() {
+        let wanted = boardWantsPolling
+            || sessionMonitor.sessions.contains { $0.phase == .awaitingInput }
+        guard wanted != (timer != nil) else { return }
+
         timer?.invalidate()
         timer = nil
-        guard enabled else { return }
+        guard wanted else { return }
 
         timer = Timer.scheduledTimer(withTimeInterval: Timing.pollInterval, repeats: true) { [weak self] _ in
             Task { @MainActor in self?.tick() }
@@ -106,6 +129,9 @@ final class SessionUsageSync {
 
     private func finish(sessionId: String, result: (offset: Int, usage: SessionUsage?)?) {
         reading.remove(sessionId)
+        // A reading can resume a blocked session, which is the moment polling
+        // stops being needed — and the tick is what took that reading.
+        defer { updatePolling() }
         guard let result else { return }
         progress[sessionId] = result
         guard let usage = result.usage else { return }

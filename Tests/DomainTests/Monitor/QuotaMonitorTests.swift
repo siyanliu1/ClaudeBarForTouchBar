@@ -1612,4 +1612,44 @@ struct QuotaMonitorTests {
         #expect(codex.isEnabled == true)
         #expect(monitor.selectedProviderId == "claude")
     }
+
+    /// The dropdown and the background loop both set `isSyncing`, and
+    /// "Save & Test Connection" reads `lastError`/`snapshot` afterwards. A
+    /// silently skipped probe leaves the previous run's clean snapshot standing,
+    /// which reads exactly like the new credentials passing — so the skip has to
+    /// be reportable.
+    @Test
+    func `an interactive refresh says so when it skipped a provider mid-probe`() async {
+        let provider = AlwaysSyncingProvider()
+        let monitor = makeMonitor(providers: AIProviders(providers: [provider]))
+
+        let didProbe = await monitor.refreshInteractively(providerId: "claude")
+
+        #expect(didProbe == false)
+        #expect(provider.refreshCallCount == 0)
+    }
+
+}
+
+
+/// A provider that is permanently mid-probe. `AIProvider` is not `@Mockable`
+/// (only `UsageProbe` is), and `isSyncing` is only ever true inside a real
+/// refresh, so holding that state still needs a stand-in.
+private final class AlwaysSyncingProvider: AIProvider, @unchecked Sendable {
+    let id = "claude"
+    let name = "Claude"
+    let cliCommand = "claude"
+    let dashboardURL: URL? = nil
+    var isEnabled = true
+    let isSyncing = true
+    let snapshot: UsageSnapshot? = nil
+    let lastError: Error? = nil
+    nonisolated(unsafe) private(set) var refreshCallCount = 0
+
+    func isAvailable() async -> Bool { true }
+
+    func refresh() async throws -> UsageSnapshot {
+        refreshCallCount += 1
+        return UsageSnapshot(providerId: id, quotas: [], capturedAt: Date())
+    }
 }
