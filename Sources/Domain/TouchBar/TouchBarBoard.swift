@@ -49,17 +49,22 @@ public struct TouchBarBoard: Sendable, Equatable {
 
     /// One quota number. A window the provider did not report is not an error —
     /// it renders as a dash — so both parts are absent together.
+    ///
+    /// The status is carried, not derived: in used mode the number is what is
+    /// gone, and the colour must still say how much is left.
     public struct QuotaCell: Sendable, Equatable {
         public let percent: Double?
+        public let status: QuotaStatus?
 
-        public var status: QuotaStatus? {
-            percent.map(QuotaStatus.from(percentRemaining:))
+        public static let missing = QuotaCell(percent: nil, status: nil)
+
+        public init(percent: Double?, status: QuotaStatus?) {
+            self.percent = percent
+            self.status = status
         }
 
-        public static let missing = QuotaCell(percent: nil)
-
-        public init(percent: Double?) {
-            self.percent = percent
+        public init(quota: UsageQuota, mode: UsageDisplayMode) {
+            self.init(percent: quota.displayPercent(mode: mode), status: quota.status)
         }
     }
 
@@ -127,6 +132,8 @@ public struct TouchBarBoard: Sendable, Equatable {
     ///   - snapshot: Looks up a provider's latest snapshot by id.
     ///   - traySelection: The provider and quota the tray item's number follows —
     ///     the same choice the menu bar label already uses.
+    ///   - mode: Whether a number is what is left or what is used, the same
+    ///     choice the menu bar and the popover already follow.
     ///   - hooksEnabled: Whether session tracking is switched on at all, which
     ///     decides which of the two empty states applies.
     ///   - isRefreshing: Whether a quota refresh is in flight, so the numbers can
@@ -136,6 +143,7 @@ public struct TouchBarBoard: Sendable, Equatable {
         sessions: [ClaudeSession],
         snapshot: (String) -> UsageSnapshot?,
         traySelection: (providerId: String, quotaKey: String),
+        mode: UsageDisplayMode,
         hooksEnabled: Bool,
         isRefreshing: Bool,
         now: Date
@@ -157,13 +165,13 @@ public struct TouchBarBoard: Sendable, Equatable {
 
         return TouchBarBoard(
             tiles: tiles,
-            claude: claudeQuotaKeys.map { cell(in: claudeSnapshot, forKey: $0) },
-            codex: codexQuotaKeys.map { cell(in: codexSnapshot, forKey: $0) },
+            claude: claudeQuotaKeys.map { cell(in: claudeSnapshot, forKey: $0, mode: mode) },
+            codex: codexQuotaKeys.map { cell(in: codexSnapshot, forKey: $0, mode: mode) },
             tray: Tray(
                 // The dot follows the tile the user would see first, so the
                 // collapsed bar and the open one never disagree.
                 phase: tiles.first?.phase,
-                quota: cell(in: snapshot(traySelection.providerId), forKey: traySelection.quotaKey)
+                quota: cell(in: snapshot(traySelection.providerId), forKey: traySelection.quotaKey, mode: mode)
             ),
             isRefreshing: isRefreshing,
             emptyMessage: tiles.isEmpty ? emptyMessage(hooksEnabled: hooksEnabled) : nil
@@ -177,9 +185,9 @@ public struct TouchBarBoard: Sendable, Equatable {
         return now.timeIntervalSince(endedAt) < endedRetention
     }
 
-    private static func cell(in snapshot: UsageSnapshot?, forKey key: String) -> QuotaCell {
+    private static func cell(in snapshot: UsageSnapshot?, forKey key: String, mode: UsageDisplayMode) -> QuotaCell {
         guard let quota = snapshot?.quota(forKey: key) else { return .missing }
-        return QuotaCell(percent: quota.percentRemaining)
+        return QuotaCell(quota: quota, mode: mode)
     }
 
     private static func emptyMessage(hooksEnabled: Bool) -> String {
