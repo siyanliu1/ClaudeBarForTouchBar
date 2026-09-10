@@ -27,8 +27,8 @@ permissions:
   id-token: write
 
 env:
-  APP_NAME: ClaudeBar
-  BUNDLE_ID: com.tddworks.claudebar
+  APP_NAME: TouchQuota
+  BUNDLE_ID: com.touchquota.app
 
 jobs:
   release:
@@ -107,7 +107,7 @@ jobs:
           tuist generate --no-open
           ./scripts/fix-swiftterm-metal.sh
           echo "=== Available schemes ==="
-          xcodebuild -workspace ClaudeBar.xcworkspace -list
+          xcodebuild -workspace TouchQuota.xcworkspace -list
 
       - name: Build Universal App Bundle
         run: |
@@ -353,7 +353,7 @@ jobs:
         uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
         with:
           tag_name: v${{ steps.version.outputs.version }}
-          name: ClaudeBar v${{ steps.version.outputs.version }}
+          name: TouchQuota v${{ steps.version.outputs.version }}
           draft: false
           prerelease: ${{ steps.version.outputs.is_prerelease }}
           files: |
@@ -372,19 +372,19 @@ jobs:
 
             **Option 1: DMG (Recommended)**
             1. Download `${{ env.DMG_FILE }}`
-            2. Open the DMG and drag ClaudeBar.app to Applications
+            2. Open the DMG and drag TouchQuota.app to Applications
             3. Launch from Applications folder
 
             **Option 2: ZIP**
             1. Download `${{ env.NOTARIZED_ZIP }}`
-            2. Unzip and move ClaudeBar.app to Applications
+            2. Unzip and move TouchQuota.app to Applications
             3. Launch from Applications folder
 
             ## Verification
 
             SHA256 checksums are provided. Verify with:
             ```bash
-            shasum -a 256 -c ClaudeBar-${{ steps.version.outputs.version }}.zip.sha256
+            shasum -a 256 -c TouchQuota-${{ steps.version.outputs.version }}.zip.sha256
             ```
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

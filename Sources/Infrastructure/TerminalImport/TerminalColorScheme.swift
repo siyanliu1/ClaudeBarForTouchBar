@@ -3,7 +3,7 @@ import Foundation
 /// Format-agnostic representation of a terminal color scheme.
 ///
 /// Holds 16 ANSI colors plus UI colors (background, foreground, cursor, selection).
-/// `Codable` for JSON persistence in `~/.claudebar/themes/`.
+/// `Codable` for JSON persistence in `~/.touchquota/themes/`.
 /// Decoupled from SwiftUI to keep it in the Infrastructure layer.
 public struct TerminalColorScheme: Codable, Sendable, Equatable {
     public let name: String

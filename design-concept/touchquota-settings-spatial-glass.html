@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ClaudeBar Settings — Spatial Glass Concept</title>
+<title>TouchQuota Settings — Spatial Glass Concept</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -337,7 +337,7 @@
       <div class="sidebar-chrome">
         <div class="traffic"><span class="t-close"></span><span class="t-min"></span><span class="t-zoom"></span></div>
       </div>
-      <div class="sidebar-title" style="padding: 0 12px 10px;"><span class="logo">C</span> ClaudeBar</div>
+      <div class="sidebar-title" style="padding: 0 12px 10px;"><span class="logo">C</span> TouchQuota</div>
       <div class="side-label">App</div>
       <div class="nav-item active" data-pane="general" onclick="go('general', this)"><span class="nav-icon">⚙︎</span><span class="nav-text">General</span></div>
       <div class="nav-item" data-pane="appearance" onclick="go('appearance', this)"><span class="nav-icon">◐</span><span class="nav-text">Appearance</span></div>
@@ -369,7 +369,7 @@
         <p class="pane-sub">Startup behavior and core app preferences.</p>
         <div class="card">
           <div class="row">
-            <div><div class="card-title">Launch at Login</div><div class="card-desc">Start ClaudeBar automatically when you sign in to your Mac.</div></div>
+            <div><div class="card-title">Launch at Login</div><div class="card-desc">Start TouchQuota automatically when you sign in to your Mac.</div></div>
             <div class="toggle on" onclick="flip(this)"></div>
           </div>
           <div class="row">
@@ -421,7 +421,7 @@
             </div>
           </div>
           <div style="margin-top:16px; display:flex; gap:10px;">
-            <button class="btn ghost" onclick="toast('Import a <span class=accent>.claudebartheme</span> file')">Import Theme…</button>
+            <button class="btn ghost" onclick="toast('Import a <span class=accent>.touchquotatheme</span> file')">Import Theme…</button>
             <button class="btn ghost" onclick="toast('Theme docs opened')">Create Your Own</button>
           </div>
         </div>
@@ -430,7 +430,7 @@
       <!-- MENU BAR -->
       <section class="pane" id="pane-menubar">
         <h1 class="pane-title">Menu Bar</h1>
-        <p class="pane-sub">What ClaudeBar shows in the macOS status bar.</p>
+        <p class="pane-sub">What TouchQuota shows in the macOS status bar.</p>
         <div class="card">
           <div class="row">
             <div><div class="card-title">Display Mode</div><div class="card-desc">Icon only, or icon with a live quota readout.</div></div>
@@ -608,7 +608,7 @@
       <!-- HOOKS -->
       <section class="pane" id="pane-hooks">
         <h1 class="pane-title">Hooks</h1>
-        <p class="pane-sub">Let Claude Code push live session events into ClaudeBar.</p>
+        <p class="pane-sub">Let Claude Code push live session events into TouchQuota.</p>
         <div class="card">
           <div class="row">
             <div><div class="card-title">Enable Hook Server</div><div class="card-desc">Local HTTP listener receiving Claude Code hook events.</div></div>
@@ -654,7 +654,7 @@
       <!-- LOGS -->
       <section class="pane" id="pane-logs">
         <h1 class="pane-title">Logs</h1>
-        <p class="pane-sub mono" style="font-size:11px">~/Library/Logs/ClaudeBar/ClaudeBar.log · rotates at 5 MB</p>
+        <p class="pane-sub mono" style="font-size:11px">~/Library/Logs/TouchQuota/TouchQuota.log · rotates at 5 MB</p>
         <div class="card" style="background:rgba(0,0,0,0.45); font-family:'JetBrains Mono',monospace; font-size:11px; line-height:1.9; color:var(--text-2)">
           <div><span style="color:var(--text-3)">[2026-08-21 21:29:02]</span> <span style="color:var(--green)">[INFO]</span> [monitor] refresh cycle complete · 6 providers · 1.2s</div>
           <div><span style="color:var(--text-3)">[2026-08-21 21:29:01]</span> <span style="color:var(--green)">[INFO]</span> [probes] claude /usage → session 62% weekly 41%</div>
@@ -672,13 +672,13 @@
       <section class="pane" id="pane-about">
         <div class="about-hero">
           <div class="about-logo">C</div>
-          <h2>ClaudeBar</h2>
+          <h2>TouchQuota</h2>
           <div class="mono">v0.4.80 (480) · macOS 15+</div>
           <p style="font-size:13px; color:var(--text-2); max-width:400px; margin:14px auto 0;">
             One menu bar for every AI coding assistant quota — Claude, Codex, Gemini, Copilot and nine more.
           </p>
           <div class="link-row">
-            <button class="btn" onclick="toast('github.com/tddworks/claudebar')">GitHub</button>
+            <button class="btn" onclick="toast('github.com/siyanliu1/TouchQuota')">GitHub</button>
             <button class="btn ghost" onclick="toast('Release notes opened')">Release Notes</button>
             <button class="btn primary" onclick="toast('Thank you! ♥')">Sponsor ♥</button>
           </div>

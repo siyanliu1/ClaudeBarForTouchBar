@@ -30,7 +30,7 @@ struct MockRepositoryFactory {
         zaiConfigPath: String = "",
         glmAuthEnvVar: String = ""
     ) -> UserDefaultsProviderSettingsRepository {
-        let suiteName = "com.claudebar.test.\(UUID().uuidString)"
+        let suiteName = "com.touchquota.test.\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suiteName)!
         let repo = UserDefaultsProviderSettingsRepository(userDefaults: defaults)
         repo.setEnabled(enabled, forProvider: "zai")
@@ -55,7 +55,7 @@ struct MockRepositoryFactory {
         username: String = "",
         hasToken: Bool = false
     ) -> UserDefaultsProviderSettingsRepository {
-        let suiteName = "com.claudebar.test.\(UUID().uuidString)"
+        let suiteName = "com.touchquota.test.\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suiteName)!
         let repo = UserDefaultsProviderSettingsRepository(userDefaults: defaults)
         repo.setEnabled(enabled, forProvider: "copilot")

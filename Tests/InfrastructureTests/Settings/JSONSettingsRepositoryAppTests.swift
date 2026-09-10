@@ -9,7 +9,7 @@ struct JSONSettingsRepositoryAppTests {
 
     private func makeRepository() -> (JSONSettingsRepository, URL) {
         let tempDir = FileManager.default.temporaryDirectory
-            .appendingPathComponent("claudebar-test-\(UUID().uuidString)")
+            .appendingPathComponent("touchquota-test-\(UUID().uuidString)")
         let fileURL = tempDir.appendingPathComponent("settings.json")
         let store = JSONSettingsStore(fileURL: fileURL)
         let repo = JSONSettingsRepository(store: store)
@@ -117,7 +117,7 @@ struct JSONSettingsRepositoryAppTests {
     @Test
     func `setMenuBarSecondaryQuotaKey persists value`() {
         let tempDir = FileManager.default.temporaryDirectory
-            .appendingPathComponent("claudebar-test-\(UUID().uuidString)")
+            .appendingPathComponent("touchquota-test-\(UUID().uuidString)")
         let fileURL = tempDir.appendingPathComponent("settings.json")
         defer { try? FileManager.default.removeItem(at: tempDir) }
 
@@ -140,7 +140,7 @@ struct JSONSettingsRepositoryAppTests {
     @Test
     func `setMenuBarDurationEnabled persists value`() {
         let tempDir = FileManager.default.temporaryDirectory
-            .appendingPathComponent("claudebar-test-\(UUID().uuidString)")
+            .appendingPathComponent("touchquota-test-\(UUID().uuidString)")
         let fileURL = tempDir.appendingPathComponent("settings.json")
         defer { try? FileManager.default.removeItem(at: tempDir) }
 
@@ -163,7 +163,7 @@ struct JSONSettingsRepositoryAppTests {
     @Test
     func `setMenuBarStackedEnabled persists value`() {
         let tempDir = FileManager.default.temporaryDirectory
-            .appendingPathComponent("claudebar-test-\(UUID().uuidString)")
+            .appendingPathComponent("touchquota-test-\(UUID().uuidString)")
         let fileURL = tempDir.appendingPathComponent("settings.json")
         defer { try? FileManager.default.removeItem(at: tempDir) }
 
@@ -186,7 +186,7 @@ struct JSONSettingsRepositoryAppTests {
     @Test
     func `setMenuBarStackedSize persists value`() {
         let tempDir = FileManager.default.temporaryDirectory
-            .appendingPathComponent("claudebar-test-\(UUID().uuidString)")
+            .appendingPathComponent("touchquota-test-\(UUID().uuidString)")
         let fileURL = tempDir.appendingPathComponent("settings.json")
         defer { try? FileManager.default.removeItem(at: tempDir) }
 
@@ -237,20 +237,20 @@ struct JSONSettingsRepositoryAppTests {
     // MARK: - Background Sync
 
     @Test
-    func `backgroundSyncEnabled defaults to false`() {
+    func `backgroundSyncEnabled defaults to true`() {
         let (repo, dir) = makeRepository()
         defer { cleanup(dir) }
 
-        #expect(repo.backgroundSyncEnabled() == false)
+        #expect(repo.backgroundSyncEnabled() == true)
     }
 
     @Test
-    func `backgroundSyncInterval defaults to 600`() {
+    func `backgroundSyncInterval defaults to 60`() {
         let (repo, dir) = makeRepository()
         defer { cleanup(dir) }
 
-        // Power-conscious 10-minute default for background refresh (issue #204).
-        #expect(repo.backgroundSyncInterval() == 600)
+        // The Touch Bar board is glanced at constantly, so it polls at the 1-minute floor.
+        #expect(repo.backgroundSyncInterval() == 60)
     }
 
     @Test
@@ -313,7 +313,7 @@ struct JSONSettingsRepositoryAppTests {
     @Test
     func `values persist across separate repository instances`() {
         let tempDir = FileManager.default.temporaryDirectory
-            .appendingPathComponent("claudebar-test-\(UUID().uuidString)")
+            .appendingPathComponent("touchquota-test-\(UUID().uuidString)")
         let fileURL = tempDir.appendingPathComponent("settings.json")
         defer { try? FileManager.default.removeItem(at: tempDir) }
 
@@ -366,7 +366,7 @@ struct JSONSettingsRepositoryAppTests {
     @Test
     func `setTouchBarLayout persists across repository instances`() {
         let tempDir = FileManager.default.temporaryDirectory
-            .appendingPathComponent("claudebar-test-\(UUID().uuidString)")
+            .appendingPathComponent("touchquota-test-\(UUID().uuidString)")
         let fileURL = tempDir.appendingPathComponent("settings.json")
         defer { try? FileManager.default.removeItem(at: tempDir) }
 

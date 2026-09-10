@@ -1,7 +1,7 @@
 import ProjectDescription
 
 let project = Project(
-    name: "ClaudeBar",
+    name: "TouchQuota",
     options: .options(
         defaultKnownRegions: ["en"],
         developmentRegion: "en"
@@ -26,7 +26,7 @@ let project = Project(
             name: "Domain",
             destinations: .macOS,
             product: .staticFramework,
-            bundleId: "com.tddworks.claudebar.domain",
+            bundleId: "com.touchquota.app.domain",
             deploymentTargets: .macOS("15.0"),
             sources: ["Sources/Domain/**"],
             dependencies: [
@@ -44,7 +44,7 @@ let project = Project(
             name: "Infrastructure",
             destinations: .macOS,
             product: .staticFramework,
-            bundleId: "com.tddworks.claudebar.infrastructure",
+            bundleId: "com.touchquota.app.infrastructure",
             deploymentTargets: .macOS("15.0"),
             sources: ["Sources/Infrastructure/**"],
             dependencies: [
@@ -69,10 +69,10 @@ let project = Project(
 
         // MARK: - Main Application
         .target(
-            name: "ClaudeBar",
+            name: "TouchQuota",
             destinations: .macOS,
             product: .app,
-            bundleId: "com.tddworks.claudebar",
+            bundleId: "com.touchquota.app",
             deploymentTargets: .macOS("15.0"),
             infoPlist: .file(path: "Sources/App/Info.plist"),
             sources: ["Sources/App/**"],
@@ -113,7 +113,7 @@ let project = Project(
             name: "DomainTests",
             destinations: .macOS,
             product: .unitTests,
-            bundleId: "com.tddworks.claudebar.domain-tests",
+            bundleId: "com.touchquota.app.domain-tests",
             deploymentTargets: .macOS("15.0"),
             sources: ["Tests/DomainTests/**"],
             dependencies: [
@@ -139,7 +139,7 @@ let project = Project(
             name: "InfrastructureTests",
             destinations: .macOS,
             product: .unitTests,
-            bundleId: "com.tddworks.claudebar.infrastructure-tests",
+            bundleId: "com.touchquota.app.infrastructure-tests",
             deploymentTargets: .macOS("15.0"),
             sources: ["Tests/InfrastructureTests/**"],
             dependencies: [
@@ -165,7 +165,7 @@ let project = Project(
             name: "AcceptanceTests",
             destinations: .macOS,
             product: .unitTests,
-            bundleId: "com.tddworks.claudebar.acceptance-tests",
+            bundleId: "com.touchquota.app.acceptance-tests",
             deploymentTargets: .macOS("15.0"),
             sources: ["Tests/AcceptanceTests/**"],
             dependencies: [
@@ -188,9 +188,9 @@ let project = Project(
     ],
     schemes: [
         .scheme(
-            name: "ClaudeBar",
+            name: "TouchQuota",
             shared: true,
-            buildAction: .buildAction(targets: ["ClaudeBar"]),
+            buildAction: .buildAction(targets: ["TouchQuota"]),
             testAction: .targets(
                 [
                     .testableTarget(target: .target("AcceptanceTests")),
@@ -199,9 +199,9 @@ let project = Project(
                 ],
                 configuration: .debug
             ),
-            runAction: .runAction(configuration: .debug, executable: .target("ClaudeBar")),
+            runAction: .runAction(configuration: .debug, executable: .target("TouchQuota")),
             archiveAction: .archiveAction(configuration: .release),
-            profileAction: .profileAction(configuration: .release, executable: .target("ClaudeBar")),
+            profileAction: .profileAction(configuration: .release, executable: .target("TouchQuota")),
             analyzeAction: .analyzeAction(configuration: .debug)
         ),
     ]

@@ -323,16 +323,16 @@ struct ClaudeSessionTests {
 
     @Test
     func `repoName is the last path component of the working directory`() {
-        let session = ClaudeSession(id: "test", cwd: "/Users/me/github/tddworks/claudebar")
+        let session = ClaudeSession(id: "test", cwd: "/Users/me/github/siyanliu1/touchquota")
 
-        #expect(session.repoName == "claudebar")
+        #expect(session.repoName == "touchquota")
     }
 
     @Test
     func `repoName tolerates a trailing slash`() {
-        let session = ClaudeSession(id: "test", cwd: "/Users/me/github/claudebar/")
+        let session = ClaudeSession(id: "test", cwd: "/Users/me/github/touchquota/")
 
-        #expect(session.repoName == "claudebar")
+        #expect(session.repoName == "touchquota")
     }
 
     @Test

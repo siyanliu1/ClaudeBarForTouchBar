@@ -1,6 +1,6 @@
 # Extensions Feature
 
-User-built provider extensions for ClaudeBar. Drop a folder with a `manifest.json` and probe scripts into `~/.claudebar/extensions/` to add custom AI provider monitoring with your own data sources and card layouts.
+User-built provider extensions for TouchQuota. Drop a folder with a `manifest.json` and probe scripts into `~/.touchquota/extensions/` to add custom AI provider monitoring with your own data sources and card layouts.
 
 ---
 
@@ -8,10 +8,10 @@ User-built provider extensions for ClaudeBar. Drop a folder with a `manifest.jso
 
 ```bash
 # Create an extension
-mkdir -p ~/.claudebar/extensions/my-provider
+mkdir -p ~/.touchquota/extensions/my-provider
 
 # Add manifest.json (defines sections + probe commands)
-cat > ~/.claudebar/extensions/my-provider/manifest.json <<'EOF'
+cat > ~/.touchquota/extensions/my-provider/manifest.json <<'EOF'
 {
     "id": "my-provider",
     "name": "My Provider",
@@ -38,17 +38,17 @@ cat > ~/.claudebar/extensions/my-provider/manifest.json <<'EOF'
 EOF
 
 # Add probe script (any language — just output JSON to stdout)
-# Config values are injected as CLAUDEBAR_* environment variables
-cat > ~/.claudebar/extensions/my-provider/probe.sh <<'PROBE'
+# Config values are injected as TOUCHQUOTA_* environment variables
+cat > ~/.touchquota/extensions/my-provider/probe.sh <<'PROBE'
 #!/bin/sh
-curl -s -H "Authorization: Bearer $CLAUDEBAR_API_KEY" \
+curl -s -H "Authorization: Bearer $TOUCHQUOTA_API_KEY" \
      https://api.example.com/usage | jq '{
     "quotas": [{"type": "weekly", "percentRemaining": (.remaining / .limit * 100)}]
 }'
 PROBE
-chmod +x ~/.claudebar/extensions/my-provider/probe.sh
+chmod +x ~/.touchquota/extensions/my-provider/probe.sh
 
-# Restart ClaudeBar — extension appears as a provider
+# Restart TouchQuota — extension appears as a provider
 # Open Settings to configure the API key
 ```
 
@@ -72,7 +72,7 @@ chmod +x ~/.claudebar/extensions/my-provider/probe.sh
 
 ### Config Fields
 
-Declare user-configurable settings that appear in ClaudeBar's Settings UI. Values are injected into probe scripts as environment variables.
+Declare user-configurable settings that appear in TouchQuota's Settings UI. Values are injected into probe scripts as environment variables.
 
 | Field | Required | Description |
 |-------|----------|-------------|
@@ -98,22 +98,22 @@ Declare user-configurable settings that appear in ClaudeBar's Settings UI. Value
 
 #### Environment Variable Injection
 
-Config values are injected into probe scripts as `CLAUDEBAR_*` environment variables. The field `id` is converted to `UPPER_SNAKE_CASE`:
+Config values are injected into probe scripts as `TOUCHQUOTA_*` environment variables. The field `id` is converted to `UPPER_SNAKE_CASE`:
 
 | Field ID | Environment Variable |
 |----------|---------------------|
-| `apiKey` | `CLAUDEBAR_API_KEY` |
-| `baseUrl` | `CLAUDEBAR_BASE_URL` |
-| `monthly_budget` | `CLAUDEBAR_MONTHLY_BUDGET` |
-| `base-url` | `CLAUDEBAR_BASE_URL` |
+| `apiKey` | `TOUCHQUOTA_API_KEY` |
+| `baseUrl` | `TOUCHQUOTA_BASE_URL` |
+| `monthly_budget` | `TOUCHQUOTA_MONTHLY_BUDGET` |
+| `base-url` | `TOUCHQUOTA_BASE_URL` |
 
 #### Config Storage
 
-- **Non-secret fields** → `~/.claudebar/settings.json` under `extensions.<id>.<fieldId>`
+- **Non-secret fields** → `~/.touchquota/settings.json` under `extensions.<id>.<fieldId>`
 - **Secret fields** (`type: "secret"`) → UserDefaults (Keychain migration planned)
 
 ```json
-// ~/.claudebar/settings.json
+// ~/.touchquota/settings.json
 {
     "extensions": {
         "openrouter": {
@@ -156,7 +156,7 @@ Probe scripts are executed via `/bin/sh -c <command>` in the extension directory
 2. Print valid JSON to stdout
 3. Complete within the configured timeout
 
-Config values are available as `CLAUDEBAR_*` environment variables (see [Config Fields](#config-fields)).
+Config values are available as `TOUCHQUOTA_*` environment variables (see [Config Fields](#config-fields)).
 
 Each section type expects a specific JSON key in the output:
 
@@ -323,16 +323,16 @@ An OpenRouter extension with API key config, status checks, and usage tracking:
 }
 ```
 
-Each probe runs independently on its own interval, so fast health checks don't wait for heavy analytics. Probe scripts access `$CLAUDEBAR_API_KEY` and `$CLAUDEBAR_MONTHLY_BUDGET` automatically.
+Each probe runs independently on its own interval, so fast health checks don't wait for heavy analytics. Probe scripts access `$TOUCHQUOTA_API_KEY` and `$TOUCHQUOTA_MONTHLY_BUDGET` automatically.
 
 ---
 
 ## Architecture
 
 ```
-ClaudeBarApp.init()
+TouchQuotaApp.init()
 └── ExtensionRegistry.loadExtensions(into: monitor)
-    └── ExtensionDirectoryScanner.scan(~/.claudebar/extensions/)
+    └── ExtensionDirectoryScanner.scan(~/.touchquota/extensions/)
         └── For each valid manifest.json:
             ├── Parse → ExtensionManifest (with configFields)
             ├── Create ScriptProbe per section (with config injection)
@@ -406,7 +406,7 @@ public struct ConfigField: Sendable, Equatable, Codable {
     public let options: [String]?       // for .choice type
 
     public var isSecret: Bool           // true when type == .secret
-    public var environmentVariableName: String  // "apiKey" → "CLAUDEBAR_API_KEY"
+    public var environmentVariableName: String  // "apiKey" → "TOUCHQUOTA_API_KEY"
     public func effectiveValue(stored: String?) -> String?  // stored ?? default
 }
 ```
@@ -520,14 +520,14 @@ Tests/
     let manifest = try ExtensionManifest.parse(from: json.data(using: .utf8)!)
     #expect(manifest.configFields.count == 2)
     #expect(manifest.configFields[0].type == .secret)
-    #expect(manifest.configFields[0].environmentVariableName == "CLAUDEBAR_API_KEY")
+    #expect(manifest.configFields[0].environmentVariableName == "TOUCHQUOTA_API_KEY")
 }
 ```
 
 Run extension tests:
 
 ```bash
-xcodebuild test -scheme ClaudeBar-Workspace -workspace ClaudeBar.xcworkspace \
+xcodebuild test -scheme TouchQuota-Workspace -workspace TouchQuota.xcworkspace \
   -destination 'platform=macOS,arch=arm64' \
   -only-testing:DomainTests/ConfigFieldTests \
   -only-testing:DomainTests/ExtensionManifestTests \

@@ -2,10 +2,10 @@
 import AppKit
 import Infrastructure
 
-/// The only file in ClaudeBar that touches private Apple interfaces.
+/// The only file in TouchQuota that touches private Apple interfaces.
 ///
 /// A background `LSUIElement` app cannot reach the Touch Bar through public
-/// AppKit: `NSTouchBar` only shows for the frontmost application, and ClaudeBar
+/// AppKit: `NSTouchBar` only shows for the frontmost application, and TouchQuota
 /// is never frontmost. Every tool that puts its own content on the bar — Pock,
 /// MTMR, BetterTouchTool — goes through DFRFoundation and a handful of private
 /// `NSTouchBar` class methods instead, and so does this.

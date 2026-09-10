@@ -9,7 +9,7 @@ struct JSONSettingsRepositoryMultiAccountTests {
 
     private func makeRepository() -> (JSONSettingsRepository, URL) {
         let tempDir = FileManager.default.temporaryDirectory
-            .appendingPathComponent("claudebar-test-\(UUID().uuidString)")
+            .appendingPathComponent("touchquota-test-\(UUID().uuidString)")
         let fileURL = tempDir.appendingPathComponent("settings.json")
         let store = JSONSettingsStore(fileURL: fileURL)
         let repo = JSONSettingsRepository(store: store)
@@ -18,7 +18,7 @@ struct JSONSettingsRepositoryMultiAccountTests {
 
     private func makeStore() -> (JSONSettingsStore, JSONSettingsRepository, URL) {
         let tempDir = FileManager.default.temporaryDirectory
-            .appendingPathComponent("claudebar-test-\(UUID().uuidString)")
+            .appendingPathComponent("touchquota-test-\(UUID().uuidString)")
         let fileURL = tempDir.appendingPathComponent("settings.json")
         let store = JSONSettingsStore(fileURL: fileURL)
         return (store, JSONSettingsRepository(store: store), tempDir)

@@ -2,7 +2,7 @@ import SwiftUI
 import Domain
 import Infrastructure
 
-/// Menu Bar pane: what ClaudeBar shows in the macOS status bar.
+/// Menu Bar pane: what TouchQuota shows in the macOS status bar.
 /// Ports the popover's "Quota Display" card logic unchanged.
 struct MenuBarPane: View {
     let monitor: QuotaMonitor
@@ -35,7 +35,7 @@ struct MenuBarPane: View {
     var body: some View {
         SettingsPane(
             title: "Menu Bar",
-            subtitle: "What ClaudeBar shows in the macOS status bar."
+            subtitle: "What TouchQuota shows in the macOS status bar."
         ) {
             SettingsCard {
                 SettingsFieldLabel(text: "QUOTA DISPLAY")

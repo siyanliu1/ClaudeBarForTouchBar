@@ -62,7 +62,7 @@ struct SettingsSidebarView: View {
                     .frame(width: 20, height: 20)
                     .clipShape(RoundedRectangle(cornerRadius: 5))
 
-                Text("ClaudeBar")
+                Text("TouchQuota")
                     .font(.system(size: 13, weight: .semibold, design: theme.fontDesign))
                     .foregroundStyle(theme.textSecondary)
             }

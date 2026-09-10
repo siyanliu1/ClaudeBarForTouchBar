@@ -85,7 +85,7 @@ struct SimpleCLIExecutorTests {
     func `execute throws cliNotFound for a missing binary`() async {
         await #expect(throws: ProbeError.self) {
             try await SimpleCLIExecutor().execute(
-                binary: "claudebar-not-a-real-cli",
+                binary: "touchquota-not-a-real-cli",
                 args: [],
                 input: nil,
                 timeout: 10,

@@ -1,9 +1,9 @@
 #!/bin/sh
 # Example quota probe — uses config values from Settings
-# $CLAUDEBAR_API_KEY and $CLAUDEBAR_BASE_URL are injected automatically
+# $TOUCHQUOTA_API_KEY and $TOUCHQUOTA_BASE_URL are injected automatically
 #
 # Replace this with real API calls:
-#   curl -s -H "Authorization: Bearer $CLAUDEBAR_API_KEY" "$CLAUDEBAR_BASE_URL/usage"
+#   curl -s -H "Authorization: Bearer $TOUCHQUOTA_API_KEY" "$TOUCHQUOTA_BASE_URL/usage"
 
 # For demo purposes, return mock data
 cat <<'EOF'

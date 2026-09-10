@@ -29,7 +29,7 @@ struct BedrockConfigSpec {
         @Test
         func `profile name is persisted in UserDefaults`() {
             // Given
-            let suiteName = "com.claudebar.test.\(UUID().uuidString)"
+            let suiteName = "com.touchquota.test.\(UUID().uuidString)"
             let defaults = UserDefaults(suiteName: suiteName)!
             let settings = UserDefaultsProviderSettingsRepository(userDefaults: defaults)
 
@@ -52,7 +52,7 @@ struct BedrockConfigSpec {
         @Test
         func `regions list is persisted`() {
             // Given
-            let suiteName = "com.claudebar.test.\(UUID().uuidString)"
+            let suiteName = "com.touchquota.test.\(UUID().uuidString)"
             let defaults = UserDefaults(suiteName: suiteName)!
             let settings = UserDefaultsProviderSettingsRepository(userDefaults: defaults)
 
@@ -75,7 +75,7 @@ struct BedrockConfigSpec {
         @Test
         func `daily budget is persisted`() {
             // Given
-            let suiteName = "com.claudebar.test.\(UUID().uuidString)"
+            let suiteName = "com.touchquota.test.\(UUID().uuidString)"
             let defaults = UserDefaults(suiteName: suiteName)!
             let settings = UserDefaultsProviderSettingsRepository(userDefaults: defaults)
 
@@ -92,7 +92,7 @@ struct BedrockConfigSpec {
         @Test
         func `budget can be cleared`() {
             // Given — budget is set
-            let suiteName = "com.claudebar.test.\(UUID().uuidString)"
+            let suiteName = "com.touchquota.test.\(UUID().uuidString)"
             let defaults = UserDefaults(suiteName: suiteName)!
             let settings = UserDefaultsProviderSettingsRepository(userDefaults: defaults)
             settings.setBedrockDailyBudget(50.00)
@@ -115,7 +115,7 @@ struct BedrockConfigSpec {
         @Test
         func `Bedrock defaults to disabled until configured`() {
             // Given
-            let suiteName = "com.claudebar.test.\(UUID().uuidString)"
+            let suiteName = "com.touchquota.test.\(UUID().uuidString)"
             let defaults = UserDefaults(suiteName: suiteName)!
             let settings = UserDefaultsProviderSettingsRepository(userDefaults: defaults)
 

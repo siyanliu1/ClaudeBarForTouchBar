@@ -4,14 +4,14 @@ import Domain
 
 /// Stores sensitive credentials as generic-password items in the user's Keychain.
 public final class KeychainCredentialRepository: CredentialRepository, @unchecked Sendable {
-    /// Shared production credential store for ClaudeBar.
+    /// Shared production credential store for TouchQuota.
     public static let shared = KeychainCredentialRepository()
 
     private let service: String
 
     /// Creates a Keychain credential store with an isolated service name.
     /// - Parameter service: The Keychain service used to namespace credential items.
-    public init(service: String = "com.tddworks.claudebar.credentials") {
+    public init(service: String = "com.touchquota.app.credentials") {
         self.service = service
     }
 

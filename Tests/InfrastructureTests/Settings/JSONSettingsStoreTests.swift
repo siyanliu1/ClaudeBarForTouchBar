@@ -7,7 +7,7 @@ struct JSONSettingsStoreTests {
 
     private func makeStore(initialJSON: String? = nil) throws -> (JSONSettingsStore, URL) {
         let tempDir = FileManager.default.temporaryDirectory
-            .appendingPathComponent("claudebar-test-\(UUID().uuidString)")
+            .appendingPathComponent("touchquota-test-\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
 
         let fileURL = tempDir.appendingPathComponent("settings.json")
@@ -233,7 +233,7 @@ struct JSONSettingsStoreTests {
     @Test
     func `creates parent directory if needed`() throws {
         let tempDir = FileManager.default.temporaryDirectory
-            .appendingPathComponent("claudebar-test-\(UUID().uuidString)")
+            .appendingPathComponent("touchquota-test-\(UUID().uuidString)")
         let deepPath = tempDir
             .appendingPathComponent("nested")
             .appendingPathComponent("dir")

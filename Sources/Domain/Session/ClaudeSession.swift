@@ -208,7 +208,7 @@ public struct ClaudeSession: Sendable, Equatable, Identifiable {
     }
 
     /// The repository the session is running in — the last path component of
-    /// `cwd`. This is how users refer to a session ("the claudebar one"), so it
+    /// `cwd`. This is how users refer to a session ("the touchquota one"), so it
     /// belongs here rather than being re-derived by each view.
     public var repoName: String {
         ((cwd as NSString).standardizingPath as NSString).lastPathComponent

@@ -37,14 +37,14 @@ struct NotchActivityResolverTests {
 
     @Test
     func `an active session resolves to working`() {
-        let result = resolver.resolve(sessions: [running("claudebar")], quotas: [], headlineQuota: nil, now: now)
+        let result = resolver.resolve(sessions: [running("touchquota")], quotas: [], headlineQuota: nil, now: now)
 
-        #expect(result == .working(running("claudebar")))
+        #expect(result == .working(running("touchquota")))
     }
 
     @Test
     func `a session with subagents resolves to agents working`() {
-        var session = running("claudebar")
+        var session = running("touchquota")
         session.subagentStarted()
 
         let result = resolver.resolve(sessions: [session], quotas: [], headlineQuota: nil, now: now)
@@ -55,7 +55,7 @@ struct NotchActivityResolverTests {
 
     @Test
     func `a blocked session resolves to awaiting input`() {
-        var session = running("claudebar")
+        var session = running("touchquota")
         session.awaitInput("Bash · rm -rf build/", at: now)
 
         let result = resolver.resolve(sessions: [session], quotas: [], headlineQuota: nil, now: now)
@@ -68,7 +68,7 @@ struct NotchActivityResolverTests {
 
     @Test
     func `a blocked session outranks any number of working sessions`() {
-        var blocked = running("claudebar", startedAt: now.addingTimeInterval(-10))
+        var blocked = running("touchquota", startedAt: now.addingTimeInterval(-10))
         blocked.awaitInput("Write · Package.swift", at: now)
 
         var busy = running("asc")
@@ -77,19 +77,19 @@ struct NotchActivityResolverTests {
 
         let result = resolver.resolve(sessions: [busy, running("billfold"), blocked], quotas: [], headlineQuota: nil, now: now)
 
-        #expect(result?.session?.id == "claudebar")
+        #expect(result?.session?.id == "touchquota")
     }
 
     @Test
     func `a critical quota outranks a working session`() {
-        let result = resolver.resolve(sessions: [running("claudebar")], quotas: [quota(5)], headlineQuota: nil, now: now)
+        let result = resolver.resolve(sessions: [running("touchquota")], quotas: [quota(5)], headlineQuota: nil, now: now)
 
         #expect(result == .quotaThreshold(quota(5)))
     }
 
     @Test
     func `a blocked session outranks a critical quota`() {
-        var blocked = running("claudebar")
+        var blocked = running("touchquota")
         blocked.awaitInput("Bash · git push", at: now)
 
         let result = resolver.resolve(sessions: [blocked], quotas: [quota(0)], headlineQuota: nil, now: now)
@@ -111,21 +111,21 @@ struct NotchActivityResolverTests {
 
     @Test
     func `among blocked sessions the one waiting longest wins`() {
-        var early = running("claudebar", startedAt: now.addingTimeInterval(-600))
+        var early = running("touchquota", startedAt: now.addingTimeInterval(-600))
         early.awaitInput("Bash · make", at: now)
         var late = running("asc", startedAt: now.addingTimeInterval(-30))
         late.awaitInput("Bash · ls", at: now)
 
         let result = resolver.resolve(sessions: [late, early], quotas: [], headlineQuota: nil, now: now)
 
-        #expect(result?.session?.id == "claudebar")
+        #expect(result?.session?.id == "touchquota")
     }
 
     // MARK: - The idle glance
 
     @Test
     func `the headline quota is shown at a glance when nothing is happening`() {
-        // ClaudeBar is a quota monitor. With no session running, how much is
+        // TouchQuota is a quota monitor. With no session running, how much is
         // left is still the thing the user came for.
         let headline = quota(86)
 
@@ -154,13 +154,13 @@ struct NotchActivityResolverTests {
         let headline = quota(86)
 
         let result = resolver.resolve(
-            sessions: [running("claudebar")],
+            sessions: [running("touchquota")],
             quotas: [headline],
             headlineQuota: headline,
             now: now
         )
 
-        #expect(result == .working(running("claudebar")))
+        #expect(result == .working(running("touchquota")))
     }
 
     @Test
@@ -187,7 +187,7 @@ struct NotchActivityResolverTests {
 
     @Test
     func `a session that just stopped resolves to finished`() {
-        var session = running("claudebar")
+        var session = running("touchquota")
         session.stop(at: now.addingTimeInterval(-1))
 
         let result = resolver.resolve(sessions: [session], quotas: [], headlineQuota: nil, now: now)
@@ -197,7 +197,7 @@ struct NotchActivityResolverTests {
 
     @Test
     func `an ended session resolves to finished inside the display window`() {
-        var session = running("claudebar")
+        var session = running("touchquota")
         session.end(at: now.addingTimeInterval(-3))
 
         #expect(resolver.resolve(sessions: [session], quotas: [], headlineQuota: nil, now: now) == .finished(session))
@@ -205,7 +205,7 @@ struct NotchActivityResolverTests {
 
     @Test
     func `finished expires once the display window has passed`() {
-        var session = running("claudebar")
+        var session = running("touchquota")
         session.end(at: now.addingTimeInterval(-5))
 
         #expect(resolver.resolve(sessions: [session], quotas: [], headlineQuota: nil, now: now) == nil)
@@ -213,7 +213,7 @@ struct NotchActivityResolverTests {
 
     @Test
     func `an expired finished session yields to the next activity`() {
-        var done = running("claudebar")
+        var done = running("touchquota")
         done.end(at: now.addingTimeInterval(-30))
         let stillGoing = running("asc")
 
@@ -224,23 +224,23 @@ struct NotchActivityResolverTests {
 
     @Test
     func `finished briefly outranks a session that is still working`() {
-        var done = running("claudebar")
+        var done = running("touchquota")
         done.end(at: now.addingTimeInterval(-1))
 
         let result = resolver.resolve(sessions: [done, running("asc")], quotas: [], headlineQuota: nil, now: now)
 
-        #expect(result?.session?.id == "claudebar")
+        #expect(result?.session?.id == "touchquota")
     }
 
     @Test
     func `a blocked session is never masked by a finished flash`() {
         var done = running("asc")
         done.end(at: now)
-        var blocked = running("claudebar")
+        var blocked = running("touchquota")
         blocked.awaitInput("Bash · rm", at: now)
 
         let result = resolver.resolve(sessions: [done, blocked], quotas: [], headlineQuota: nil, now: now)
 
-        #expect(result?.session?.id == "claudebar")
+        #expect(result?.session?.id == "touchquota")
     }
 }

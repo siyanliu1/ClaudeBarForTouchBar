@@ -154,7 +154,7 @@ struct ProviderEnableDisableSpec {
         @Test
         func `enabled state is stored in UserDefaults`() {
             // Given — isolated UserDefaults
-            let suiteName = "com.claudebar.test.\(UUID().uuidString)"
+            let suiteName = "com.touchquota.test.\(UUID().uuidString)"
             let defaults = UserDefaults(suiteName: suiteName)!
             let repo = UserDefaultsProviderSettingsRepository(userDefaults: defaults)
 

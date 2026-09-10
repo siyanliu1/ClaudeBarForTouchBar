@@ -1,12 +1,12 @@
 import Foundation
 
-/// Manages the port discovery file at ~/.claude/claudebar-hook-port.
+/// Manages the port discovery file at ~/.claude/touchquota-hook-port.
 /// Hook scripts read this file to find the HTTP server port.
 public enum PortDiscovery {
     /// The path to the port discovery file
     public static var portFilePath: String {
         let home = FileManager.default.homeDirectoryForCurrentUser.path
-        return "\(home)/.claude/claudebar-hook-port"
+        return "\(home)/.claude/touchquota-hook-port"
     }
 
     /// Writes the port number to the discovery file.

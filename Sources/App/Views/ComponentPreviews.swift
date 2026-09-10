@@ -348,7 +348,7 @@ import Domain
             ProviderIconView(providerId: "claude", size: 24)
 
             VStack(alignment: .leading, spacing: 2) {
-                Text("ClaudeBar")
+                Text("TouchQuota")
                     .font(.system(size: 18, weight: .bold, design: theme.fontDesign))
                     .foregroundStyle(.white)
 

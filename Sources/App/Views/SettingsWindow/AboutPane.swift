@@ -28,7 +28,7 @@ struct AboutPane: View {
                     .clipShape(RoundedRectangle(cornerRadius: 18))
 
                 VStack(spacing: 4) {
-                    Text("ClaudeBar")
+                    Text("TouchQuota")
                         .font(.system(size: 20, weight: .bold, design: theme.fontDesign))
                         .foregroundStyle(theme.textPrimary)
 
@@ -38,7 +38,7 @@ struct AboutPane: View {
                         .multilineTextAlignment(.center)
                 }
 
-                Link(destination: URL(string: "https://github.com/tddworks/claudebar")!) {
+                Link(destination: URL(string: "https://github.com/siyanliu1/TouchQuota")!) {
                     HStack(spacing: 6) {
                         Image(systemName: "link")
                             .font(.system(size: 11, weight: .semibold))
