@@ -1,354 +1,119 @@
 # TouchQuota
 
-[![Build](https://github.com/siyanliu1/TouchQuota/actions/workflows/build.yml/badge.svg)](https://github.com/siyanliu1/TouchQuota/actions/workflows/build.yml)
-[![Tests](https://github.com/siyanliu1/TouchQuota/actions/workflows/tests.yml/badge.svg)](https://github.com/siyanliu1/TouchQuota/actions/workflows/tests.yml)
-[![Swift 6.2](https://img.shields.io/badge/Swift-6.2-orange.svg)](https://swift.org)
+[![CI](https://github.com/siyanliu1/TouchQuota/actions/workflows/tests.yml/badge.svg)](https://github.com/siyanliu1/TouchQuota/actions/workflows/tests.yml)
 [![Platform](https://img.shields.io/badge/Platform-macOS%2015-blue.svg)](https://developer.apple.com)
+[![Touch Bar](https://img.shields.io/badge/Touch%20Bar-required-black.svg)](#requirements)
+[![Upstream](https://img.shields.io/badge/fork%20of-tddworks%2FClaudeBar-lightgrey.svg)](https://github.com/tddworks/ClaudeBar)
 
-A macOS menu bar application that monitors AI coding assistant usage quotas. Keep track of your Claude, Codex, Gemini, GitHub Copilot, Antigravity, Z.ai, Kimi, Kiro, Amp, OpenCode Go, Oh My Pi, Grok, and more at a glance.
+TouchQuota puts your Claude Code sessions and your Claude / Codex quotas **on the MacBook Pro Touch Bar**.
 
-TouchQuota is a fork of [tddworks/ClaudeBar](https://github.com/tddworks/ClaudeBar) that adds native MacBook Pro Touch Bar support.
+Every Claude Code session you have open becomes a tile on the strip: which repo it is in, how full its context window is, what it is doing right now, and, loudest of all, when it is waiting on you. Next to the tiles sit your Claude and Codex quota numbers. Nothing to open, nothing to switch to; it is just there under your fingers while you type.
 
-<table align="center">
-  <tr>
-    <td align="center"><img src="docs/screenshots/Screenshot-dark.png" alt="Dark Mode" width="360"/><br/><em>Dark Mode</em></td>
-    <td align="center"><img src="docs/screenshots/Screenshot-light.png" alt="Light Mode" width="360"/><br/><em>Light Mode</em></td>
-  </tr>
-  <tr>
-    <td align="center"><img src="docs/screenshots/Screenshot-cli-dark.png" alt="CLI Theme" width="360"/><br/><em>CLI Theme</em></td>
-    <td align="center"><img src="docs/screenshots/Christmas-theme.png" alt="Christmas Theme" width="360"/><br/><em>Christmas Theme</em></td>
-  </tr>
-</table>
+<p align="center">
+  <img src="docs/screenshots/touchbar-wide.png" alt="TouchQuota on the Touch Bar: session tiles on the left, Claude and Codex quotas on the right" width="100%"/>
+</p>
 
-## Sponsors
+TouchQuota is a fork of [ClaudeBar](https://github.com/tddworks/ClaudeBar). Everything ClaudeBar does (the menu bar item, the popover, themes, notifications, the notch live activity, a dozen AI providers) is still here and works the same. See the [ClaudeBar README](https://github.com/tddworks/ClaudeBar#readme) for that half of the app. This page is about the Touch Bar.
 
-TouchQuota has no sponsors of its own. The upstream project, [ClaudeBar](https://github.com/tddworks/ClaudeBar), is supported through [GitHub Sponsors](https://github.com/sponsors/hanrw), and we'd like to give a special mention to the following sponsors of that work:
+## What you see
 
-<table>
-  <tbody>
-    <tr>
-      <td width="30%" align="center">
-        <a href="https://www.testmuai.com/?utm_source=ClaudeBar&utm_medium=opensourcecollab" target="_blank">
-          <picture>
-            <source media="(prefers-color-scheme: dark)" srcset="docs/sponsors/testmuai/testmuai-dark.svg"/>
-            <img width="220" src="docs/sponsors/testmuai/testmuai-light.svg" alt="testmuai_logo"/>
-          </picture>
-        </a>
-      </td>
-      <td><a href="https://www.testmuai.com/?utm_source=ClaudeBar&utm_medium=opensourcecollab">TestMu AI</a> (formerly LambdaTest) is the world's first full-stack agentic AI quality engineering platform, trusted by 18,000+ enterprises.</td>
-    </tr>
-  </tbody>
-</table>
+All screenshots are the real Touch Bar with real sessions and live quota data.
 
-> **Editorial independence:** Sponsorship does not influence which providers TouchQuota supports, how they are ordered in the app, or how their quota data is reported.
+### Closed: a small item in the Control Strip
 
-## Features
+<p align="center">
+  <img src="docs/screenshots/touchbar-tray.png" alt="Control Strip with the TouchQuota item: a status dot and a quota percentage" width="480"/>
+</p>
 
-- **Multi-Provider Support** - Monitor Claude, Codex, Gemini, GitHub Copilot, Antigravity, Z.ai, Kimi, Kiro, Amp, OpenCode Go, Oh My Pi, and Grok quotas in one place
-- **Provider Enable/Disable** - Toggle individual providers on/off from Settings to customize your monitoring
-- **Real-Time Quota Tracking** - View Session, Weekly, and Model-specific usage percentages
-- **Multiple Themes** - Light, Dark, CLI, Christmas, and [imported terminal themes](#import-terminal-theme) (.itermcolors)
-- **Automatic Adaptation** - System theme follows your macOS appearance; Christmas auto-enables during the holiday season
-- **Visual Status Indicators** - Color-coded progress bars (green/yellow/red) show quota health
-- **System Notifications** - Get alerted when quota status changes to warning or critical
-- **Auto-Refresh** - Automatically updates quotas at configurable intervals
-- **Keyboard Shortcuts** - Quick access with `⌘D` (Dashboard) and `⌘R` (Refresh)
+When the board is closed, TouchQuota is a small button next to the media keys. The dot takes the colour of your most urgent session (amber means one of them needs you), and the number is the same quota your menu bar item shows. Tap it to open the board.
 
-## Quota Status Thresholds
+### Compact: the board next to the Control Strip
 
-| Remaining | Status | Color |
-|-----------|--------|-------|
-| > 50% | Healthy | Green |
-| 20-50% | Warning | Yellow |
-| < 20% | Critical | Red |
-| 0% | Depleted | Gray |
+<p align="center">
+  <img src="docs/screenshots/touchbar-compact.png" alt="Compact layout" width="100%"/>
+</p>
+
+The default. The board sits in the app area of the bar and leaves the Control Strip (brightness, volume, Siri, and the TouchQuota item itself) where it is. Four tiles fit; swipe to reach the rest. The `✕` on the left closes it.
+
+### Wide: the whole bar
+
+<p align="center">
+  <img src="docs/screenshots/touchbar-wide.png" alt="Wide layout" width="100%"/>
+</p>
+
+Tap `→|←` and the board takes the full width: seven tiles at once, with the Control Strip hidden. Tap `→|←` again to go back, or `✕` to close. Whichever layout you leave it in is the one you get next time.
+
+When no Claude Code session is running, the board says so instead of showing tiles.
+
+## Reading the board
+
+### A session tile
+
+<p align="center">
+  <img src="docs/screenshots/touchbar-tiles.png" alt="Two session tiles, enlarged" width="520"/>
+</p>
+
+One tile per Claude Code session:
+
+| Part | Meaning |
+|---|---|
+| **Colour bar** on the left | What the session is doing. Green: working. Blue: subagents working. Yellow: needs you. Orange: finished its turn, waiting for your next prompt. Grey: session ended. |
+| **Name** | The repository the session is running in. |
+| **Percentage** | How full the session's context window is. Turns amber at 80 % and red at 90 %. |
+| **Second line** | What matters most right now: the permission it is waiting on, the tool it is running, your last prompt, or its last reply. |
+
+A session that **needs you** (a permission prompt, a question, a dialog) gets an amber fill and a `Needs you · …` line, and always jumps to the front. Sessions that have ended stay on the board for ten minutes, dimmed, so you can see what just finished.
+
+### The quota column
+
+<p align="center">
+  <img src="docs/screenshots/touchbar-quota.png" alt="Claude and Codex quota lines, enlarged" width="300"/>
+</p>
+
+- **Claude**: session (5 h) / weekly (7 d) / Fable
+- **Codex**: session (5 h) / weekly (7 d)
+
+The numbers follow your *Remaining* / *Used* choice in Settings → Menu Bar, just like the menu bar item. Either way each number is coloured by how much is left: green above 50 %, yellow between 20 % and 50 %, red below 20 %. A `–` means the provider did not report that window. **Tap the column to refresh** both providers.
+
+## Getting started
+
+1. **Install TouchQuota.** See [Installation](#installation).
+2. **Turn on hooks.** Settings → Hooks → *Claude Code Hooks*. This is how TouchQuota learns about your sessions. Your existing Claude Code settings are left intact, and turning hooks off puts everything back.
+3. **Turn on the board.** Settings → General → *Touch Bar Board*. The item appears in the Control Strip right away.
+4. Optionally choose **Board Width** (Compact or Wide) in the same place. The `→|←` button on the bar changes the same setting.
+
+Start a Claude Code session in any terminal and its tile appears. You do not need to restart anything.
 
 ## Requirements
 
-- macOS 15+
-- Swift 6.2+
-- CLI tools installed for providers you want to monitor:
-  - [Claude CLI](https://claude.ai/code) (`claude`)
-  - [Codex CLI](https://github.com/openai/codex) (`codex`)
-  - [Gemini CLI](https://github.com/google-gemini/gemini-cli) (`gemini`)
-  - [GitHub Copilot](https://github.com/features/copilot) - Configure credentials in Settings
-  - [Antigravity](https://antigravity.google) - Auto-detected when running locally
-  - [Z.ai](https://z.ai/subscribe) - Configure Claude Code with GLM Coding Plan endpoint
-  - [Kimi](https://www.kimi.com/code/console) (`kimi`) - CLI mode (recommended) or API mode (see below)
-  - [Kiro](https://kiro.dev) (`kiro-cli`) - Requires kiro-cli installation (see below)
-  - [Amp](https://ampcode.com) (`amp`) - Auto-detected when CLI is installed
-  - [OpenCode Go](https://opencode.ai/go) (`opencode`) - Tracks OpenCode Go usage windows (5hr/$12, weekly/$30, monthly/$60) via local SQLite DB
-  - [Oh My Pi](https://omp.sh) (`omp`) - Aggregates account usage via `omp usage --json`, showing rate-limit windows and, where reported, capped USD money cards or uncapped spend notes
-  - [Grok Build](https://docs.x.ai) (`grok`) - Tracks xAI credit usage (weekly window + per-product Grok Build / Imagine / Voice limits) using the CLI's local OAuth credentials
-
-### Kimi Setup
-
-Kimi supports two probe modes, configurable in **Settings > Kimi Configuration**:
-
-**CLI Mode (Recommended)** - Launches the interactive `kimi` CLI and sends `/usage` to fetch quota data. Requires `kimi` CLI installed (`uv tool install kimi-cli`). No Full Disk Access needed.
-
-**API Mode** - Calls the Kimi API directly using browser cookie authentication. Requires **Full Disk Access** for TouchQuota to read the `kimi-auth` browser cookie:
-1. Open **System Settings** > **Privacy & Security** > **Full Disk Access**
-2. Toggle **TouchQuota** on (or click `+` and add it)
-3. Restart TouchQuota
-
-You can also set the `KIMI_AUTH_TOKEN` environment variable to bypass cookie reading in API mode.
-
-### Kiro Setup
-
-Kiro monitors AWS Kiro (formerly CodeWhisperer) usage through the `kiro-cli` command-line tool.
-
-**Installation**: `uv tool install kiro-cli` or `pip install kiro-cli`
-
-**Authentication**: Run `kiro-cli` and follow the login prompts.
-
-**Kiro IDE Users**: If you use Kiro IDE, simply install kiro-cli. Both share the same authentication, so no additional login is required.
+- A MacBook Pro **with a Touch Bar**. macOS 26 still supports four of them: 16-inch 2019, 13-inch 2020 (four ports), 13-inch M1, 13-inch M2. TouchQuota runs fine on any other Mac; you just get the menu bar app.
+- macOS 15 or later.
+- [Claude Code](https://claude.ai/code) for sessions and Claude quota, [Codex CLI](https://github.com/openai/codex) for Codex quota. Both optional; a missing provider shows as dashes.
 
 ## Installation
 
-### Download
-
-Download the latest release from [GitHub Releases](https://github.com/siyanliu1/TouchQuota/releases/latest):
-
-- **DMG**: Open and drag TouchQuota.app to Applications
-- **ZIP**: Unzip and move TouchQuota.app to Applications
-
-Both are code-signed and notarized for Gatekeeper.
-
-### Build from Source
+There are no packaged downloads yet. Build it from source:
 
 ```bash
 git clone https://github.com/siyanliu1/TouchQuota.git
 cd TouchQuota
-
-# Install Tuist (if not installed)
 brew install tuist
-
-# Install dependencies and build
 tuist install
-tuist build TouchQuota -C Release
-```
-
-## Usage
-
-After building, open the generated Xcode workspace and run the app:
-
-```bash
 tuist generate
 open TouchQuota.xcworkspace
 ```
 
-Then press `Cmd+R` in Xcode to run. The app will appear in your menu bar. Click to view quota details for each provider.
+Then press `Cmd+R` in Xcode. The app appears in your menu bar.
 
-## Development
+## Good to know
 
-The project uses [Tuist](https://tuist.io) for dependency management and Xcode project generation.
+- Only Claude Code sessions appear as tiles. Codex contributes quota numbers, not sessions.
+- The Mac App Store build of the app has no Touch Bar support.
+- TouchQuota installs alongside ClaudeBar without conflict: it has its own name, its own settings (`~/.touchquota/`) and its own update feed.
 
-### Quick Start
+## Credits
 
-```bash
-# Install Tuist (if not installed)
-brew install tuist
-
-# Install dependencies
-tuist install
-
-# Generate Xcode project and open
-tuist generate
-open TouchQuota.xcworkspace
-```
-
-### Build & Test
-
-```bash
-# Build the project
-tuist build
-
-# Run all tests
-tuist test
-
-# Run tests with coverage
-tuist test --result-bundle-path TestResults.xcresult -- -enableCodeCoverage YES
-
-# Build release configuration
-tuist build TouchQuota -C Release
-```
-
-### SwiftUI Previews
-
-After opening in Xcode, SwiftUI previews will work with `Cmd+Option+Return`. The project is configured with `ENABLE_DEBUG_DYLIB` for preview support.
-
-## Architecture
-
-> **Full documentation:** [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
-
-TouchQuota uses a **layered architecture** with `QuotaMonitor` as the single source of truth:
-
-| Layer | Purpose |
-|-------|---------|
-| **App** | SwiftUI views consuming domain directly (no ViewModel) |
-| **Domain** | Rich models, `QuotaMonitor`, repository protocols |
-| **Infrastructure** | Probes, storage implementations, adapters |
-
-### Key Design Decisions
-
-- **Single Source of Truth** - `QuotaMonitor` owns all provider state
-- **Repository Pattern** - Settings and credentials abstracted behind injectable protocols
-- **Protocol-Based DI** - `@Mockable` protocols enable testability
-- **Chicago School TDD** - Tests verify state changes, not method calls
-- **No ViewModel/AppState** - Views consume domain directly
-
-## Import Terminal Theme
-
-Match TouchQuota's appearance to your terminal. Import any `.itermcolors` file:
-
-1. Open **Settings** (gear icon)
-2. Click **Import .itermcolors**
-3. Select your file (export from iTerm2: Preferences > Profiles > Colors > Color Presets > Export)
-
-450+ pre-made schemes available at [iTerm2-Color-Schemes](https://github.com/mbadolato/iTerm2-Color-Schemes/tree/master/schemes).
-
-Imported themes are saved in `~/.touchquota/themes/` and persist across restarts.
-
-## Contributing
-
-### Adding a New AI Provider
-
-Use the **add-provider** skill to guide you through adding new providers with TDD:
-
-```
-Tell Claude Code: "I want to add a new provider for [ProviderName]"
-```
-
-The skill guides you through: Parsing Tests → Probe Tests → Implementation → Registration.
-
-See `.claude/skills/add-provider/SKILL.md` for details and `AntigravityUsageProbe` as a reference implementation.
-
-## Dependencies
-
-- [Sparkle](https://sparkle-project.org/) - Auto-update framework
-- [Mockable](https://github.com/Kolos65/Mockable) - Protocol mocking for tests
-- [Tuist](https://tuist.io) - Xcode project generation (for SwiftUI previews)
-
-## Releasing
-
-Releases are automated via GitHub Actions. Push a version tag to create a new release.
-
-**For detailed setup instructions, see [docs/release/RELEASE_SETUP.md](docs/release/RELEASE_SETUP.md).**
-
-### Release Workflow
-
-The workflow uses Tuist to generate the Xcode project:
-
-```
-Tag v1.0.0 → Update Info.plist → tuist generate → xcodebuild → Sign & Notarize → GitHub Release
-```
-
-Version is set in `Sources/App/Info.plist` and flows through to Sparkle auto-updates.
-
-### Quick Start
-
-1. **Configure GitHub Secrets** (see [full guide](docs/release/RELEASE_SETUP.md)):
-
-   | Secret | Description |
-   |--------|-------------|
-   | `APPLE_CERTIFICATE_P12` | Developer ID certificate (base64) |
-   | `APPLE_CERTIFICATE_PASSWORD` | Password for .p12 |
-   | `APP_STORE_CONNECT_API_KEY_P8` | API key (base64) |
-   | `APP_STORE_CONNECT_KEY_ID` | Key ID |
-   | `APP_STORE_CONNECT_ISSUER_ID` | Issuer ID |
-
-2. **Verify your certificate**:
-   ```bash
-   ./scripts/verify-p12.sh /path/to/certificate.p12
-   ```
-
-3. **Create a release**:
-   ```bash
-   git tag v1.0.0
-   git push origin v1.0.0
-   ```
-
-The workflow will automatically build, sign, notarize, and publish to GitHub Releases.
-
-## Contributors
-
-Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
-
-<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
-<!-- prettier-ignore-start -->
-<!-- markdownlint-disable -->
-<table>
-  <tbody>
-    <tr>
-      <td align="center" valign="top" width="16.66%"><a href="https://tddworks.com/"><img src="https://avatars.githubusercontent.com/u/1201118?v=4?s=80" width="80px;" alt="itshan"/><br /><sub><b>itshan</b></sub></a><br /><a href="https://github.com/tddworks/claudebar/commits?author=hanrw" title="Code">💻</a> <a href="https://github.com/tddworks/claudebar/commits?author=hanrw" title="Documentation">📖</a> <a href="#maintenance-hanrw" title="Maintenance">🚧</a></td>
-      <td align="center" valign="top" width="16.66%"><a href="https://github.com/avishj"><img src="https://avatars.githubusercontent.com/u/58023328?v=4?s=80" width="80px;" alt="Avish Jha"/><br /><sub><b>Avish Jha</b></sub></a><br /><a href="https://github.com/tddworks/claudebar/commits?author=avishj" title="Code">💻</a></td>
-      <td align="center" valign="top" width="16.66%"><a href="https://github.com/ramarivera"><img src="https://avatars.githubusercontent.com/u/7547875?v=4?s=80" width="80px;" alt="Ramiro"/><br /><sub><b>Ramiro</b></sub></a><br /><a href="https://github.com/tddworks/claudebar/commits?author=ramarivera" title="Code">💻</a></td>
-      <td align="center" valign="top" width="16.66%"><a href="https://github.com/LunarECL"><img src="https://avatars.githubusercontent.com/u/38317983?v=4?s=80" width="80px;" alt="LunarECL"/><br /><sub><b>LunarECL</b></sub></a><br /><a href="https://github.com/tddworks/claudebar/commits?author=LunarECL" title="Code">💻</a></td>
-      <td align="center" valign="top" width="16.66%"><a href="https://github.com/zenibako"><img src="https://avatars.githubusercontent.com/u/18584424?v=4?s=80" width="80px;" alt="Chandler Anderson"/><br /><sub><b>Chandler Anderson</b></sub></a><br /><a href="https://github.com/tddworks/claudebar/commits?author=zenibako" title="Code">💻</a></td>
-      <td align="center" valign="top" width="16.66%"><a href="https://frmr.me"><img src="https://avatars.githubusercontent.com/u/620189?v=4?s=80" width="80px;" alt="Matt Farmer"/><br /><sub><b>Matt Farmer</b></sub></a><br /><a href="https://github.com/tddworks/claudebar/commits?author=farmdawgnation" title="Code">💻</a></td>
-    </tr>
-    <tr>
-      <td align="center" valign="top" width="16.66%"><a href="https://willner.ws"><img src="https://avatars.githubusercontent.com/u/307605?v=4?s=80" width="80px;" alt="Alex"/><br /><sub><b>Alex</b></sub></a><br /><a href="https://github.com/tddworks/claudebar/commits?author=AlexanderWillner" title="Code">💻</a></td>
-      <td align="center" valign="top" width="16.66%"><a href="https://github.com/sailesh"><img src="https://avatars.githubusercontent.com/u/493129?v=4?s=80" width="80px;" alt="sailesh"/><br /><sub><b>sailesh</b></sub></a><br /><a href="https://github.com/tddworks/claudebar/commits?author=sailesh" title="Code">💻</a></td>
-      <td align="center" valign="top" width="16.66%"><a href="https://github.com/billyjack2"><img src="https://avatars.githubusercontent.com/u/28798344?v=4?s=80" width="80px;" alt="Billy Smith"/><br /><sub><b>Billy Smith</b></sub></a><br /><a href="https://github.com/tddworks/claudebar/commits?author=billyjack2" title="Code">💻</a></td>
-      <td align="center" valign="top" width="16.66%"><a href="https://github.com/nero-sensei"><img src="https://avatars.githubusercontent.com/u/77715088?v=4?s=80" width="80px;" alt="nero"/><br /><sub><b>nero</b></sub></a><br /><a href="https://github.com/tddworks/claudebar/commits?author=nero-sensei" title="Code">💻</a></td>
-      <td align="center" valign="top" width="16.66%"><a href="https://github.com/BryanQQYue"><img src="https://avatars.githubusercontent.com/u/169884865?v=4?s=80" width="80px;" alt="BryanYue"/><br /><sub><b>BryanYue</b></sub></a><br /><a href="https://github.com/tddworks/claudebar/commits?author=BryanQQYue" title="Code">💻</a></td>
-      <td align="center" valign="top" width="16.66%"><a href="https://blog.d0zingcat.dev/"><img src="https://avatars.githubusercontent.com/u/8235790?v=4?s=80" width="80px;" alt="Tony Tang"/><br /><sub><b>Tony Tang</b></sub></a><br /><a href="https://github.com/tddworks/claudebar/commits?author=d0zingcat" title="Code">💻</a></td>
-    </tr>
-    <tr>
-      <td align="center" valign="top" width="16.66%"><a href="https://initialize.nl/"><img src="https://avatars.githubusercontent.com/u/7355878?v=4?s=80" width="80px;" alt="Frank Hommers"/><br /><sub><b>Frank Hommers</b></sub></a><br /><a href="https://github.com/tddworks/claudebar/commits?author=frankhommers" title="Code">💻</a></td>
-      <td align="center" valign="top" width="16.66%"><a href="https://www.marcusquinn.com"><img src="https://avatars.githubusercontent.com/u/6428977?v=4?s=80" width="80px;" alt="Marcus Quinn"/><br /><sub><b>Marcus Quinn</b></sub></a><br /><a href="https://github.com/tddworks/claudebar/commits?author=marcusquinn" title="Code">💻</a></td>
-      <td align="center" valign="top" width="16.66%"><a href="https://github.com/hagiwaratakayuki"><img src="https://avatars.githubusercontent.com/u/141513?v=4?s=80" width="80px;" alt="hagiwara takayuki"/><br /><sub><b>hagiwara takayuki</b></sub></a><br /><a href="https://github.com/tddworks/claudebar/commits?author=hagiwaratakayuki" title="Code">💻</a></td>
-      <td align="center" valign="top" width="16.66%"><a href="https://github.com/jeffscottmtl"><img src="https://avatars.githubusercontent.com/u/33327731?v=4?s=80" width="80px;" alt="jeffscottmtl"/><br /><sub><b>jeffscottmtl</b></sub></a><br /><a href="https://github.com/tddworks/claudebar/commits?author=jeffscottmtl" title="Code">💻</a></td>
-      <td align="center" valign="top" width="16.66%"><a href="https://github.com/tomstetson"><img src="https://avatars.githubusercontent.com/u/11658911?v=4?s=80" width="80px;" alt="Tom"/><br /><sub><b>Tom</b></sub></a><br /><a href="https://github.com/tddworks/claudebar/commits?author=tomstetson" title="Code">💻</a></td>
-      <td align="center" valign="top" width="16.66%"><a href="https://github.com/jeffWelling"><img src="https://avatars.githubusercontent.com/u/105077?v=4?s=80" width="80px;" alt="Jeff Welling"/><br /><sub><b>Jeff Welling</b></sub></a><br /><a href="https://github.com/tddworks/claudebar/commits?author=jeffWelling" title="Code">💻</a></td>
-    </tr>
-    <tr>
-      <td align="center" valign="top" width="16.66%"><a href="https://github.com/Zada5"><img src="https://avatars.githubusercontent.com/u/91982194?v=4?s=80" width="80px;" alt="Zada5"/><br /><sub><b>Zada5</b></sub></a><br /><a href="https://github.com/tddworks/claudebar/commits?author=Zada5" title="Code">💻</a></td>
-      <td align="center" valign="top" width="16.66%"><a href="https://github.com/fredericoricco-debug"><img src="https://avatars.githubusercontent.com/u/75469834?v=4?s=80" width="80px;" alt="fredericoricco-debug"/><br /><sub><b>fredericoricco-debug</b></sub></a><br /><a href="https://github.com/tddworks/claudebar/commits?author=fredericoricco-debug" title="Code">💻</a></td>
-      <td align="center" valign="top" width="16.66%"><a href="https://lystic.dev"><img src="https://avatars.githubusercontent.com/u/15372623?v=4?s=80" width="80px;" alt="Kegan Hollern"/><br /><sub><b>Kegan Hollern</b></sub></a><br /><a href="https://github.com/tddworks/claudebar/commits?author=KeganHollern" title="Code">💻</a></td>
-      <td align="center" valign="top" width="16.66%"><a href="https://github.com/jsg333"><img src="https://avatars.githubusercontent.com/u/954990?v=4?s=80" width="80px;" alt="Jeff Green"/><br /><sub><b>Jeff Green</b></sub></a><br /><a href="https://github.com/tddworks/claudebar/commits?author=jsg333" title="Code">💻</a></td>
-      <td align="center" valign="top" width="16.66%"><a href="https://github.com/benjaminbelaga"><img src="https://avatars.githubusercontent.com/u/33546317?v=4?s=80" width="80px;" alt="Benjamin Belaga"/><br /><sub><b>Benjamin Belaga</b></sub></a><br /><a href="https://github.com/tddworks/claudebar/commits?author=benjaminbelaga" title="Code">💻</a></td>
-      <td align="center" valign="top" width="16.66%"><a href="https://github.com/romanvalent"><img src="https://avatars.githubusercontent.com/u/14106124?v=4?s=80" width="80px;" alt="romanvalent"/><br /><sub><b>romanvalent</b></sub></a><br /><a href="https://github.com/tddworks/claudebar/commits?author=romanvalent" title="Code">💻</a></td>
-    </tr>
-    <tr>
-      <td align="center" valign="top" width="16.66%"><a href="http://aakshintala.com"><img src="https://avatars.githubusercontent.com/u/748697?v=4?s=80" width="80px;" alt="Amogh Akshintala"/><br /><sub><b>Amogh Akshintala</b></sub></a><br /><a href="https://github.com/tddworks/claudebar/commits?author=aakshintala" title="Code">💻</a></td>
-      <td align="center" valign="top" width="16.66%"><a href="https://www.portfolio.isnakolah.me"><img src="https://avatars.githubusercontent.com/u/47239024?v=4?s=80" width="80px;" alt="Daniel Nakolah"/><br /><sub><b>Daniel Nakolah</b></sub></a><br /><a href="https://github.com/tddworks/claudebar/commits?author=isnakolah" title="Code">💻</a></td>
-      <td align="center" valign="top" width="16.66%"><a href="https://github.com/Mitsi-ag"><img src="https://avatars.githubusercontent.com/u/141203898?v=4?s=80" width="80px;" alt="Mitsi-ag"/><br /><sub><b>Mitsi-ag</b></sub></a><br /><a href="https://github.com/tddworks/claudebar/commits?author=Mitsi-ag" title="Code">💻</a></td>
-      <td align="center" valign="top" width="16.66%"><a href="https://www.josecancinolinares.com/en/portfolio"><img src="https://avatars.githubusercontent.com/u/65030646?v=4?s=80" width="80px;" alt="José Cancino Linares"/><br /><sub><b>José Cancino Linares</b></sub></a><br /><a href="https://github.com/tddworks/claudebar/commits?author=josecancino" title="Code">💻</a></td>
-      <td align="center" valign="top" width="16.66%"><a href="https://github.com/logancox"><img src="https://avatars.githubusercontent.com/u/28828028?v=4?s=80" width="80px;" alt="logancox"/><br /><sub><b>logancox</b></sub></a><br /><a href="https://github.com/tddworks/claudebar/commits?author=logancox" title="Code">💻</a></td>
-      <td align="center" valign="top" width="16.66%"><a href="http://ywmei.ca/index.php"><img src="https://avatars.githubusercontent.com/u/5897309?v=4?s=80" width="80px;" alt="y5mei"/><br /><sub><b>y5mei</b></sub></a><br /><a href="https://github.com/tddworks/claudebar/commits?author=y5mei" title="Code">💻</a></td>
-    </tr>
-    <tr>
-      <td align="center" valign="top" width="16.66%"><a href="https://hansonkim.github.io"><img src="https://avatars.githubusercontent.com/u/1308073?v=4?s=80" width="80px;" alt="Hanson Kim"/><br /><sub><b>Hanson Kim</b></sub></a><br /><a href="https://github.com/tddworks/claudebar/commits?author=hansonkim" title="Code">💻</a></td>
-    </tr>
-  </tbody>
-  <tfoot>
-    <tr>
-      <td align="center" size="13px" colspan="6">
-        <img src="https://raw.githubusercontent.com/all-contributors/all-contributors-cli/1b8533af435da9854653492b1327a23a4dbd0a10/assets/logo-small.svg">
-          <a href="https://all-contributors.js.org/docs/en/bot/usage">Add your contributions</a>
-        </img>
-      </td>
-    </tr>
-  </tfoot>
-</table>
-
-<!-- markdownlint-restore -->
-<!-- prettier-ignore-end -->
-
-<!-- ALL-CONTRIBUTORS-LIST:END -->
-<!-- markdownlint-restore -->
-<!-- prettier-ignore-end -->
-
-This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!
-
-To credit someone, comment on any issue or pull request:
-
-```
-@all-contributors please add @username for code, doc
-```
+TouchQuota is a fork of [tddworks/ClaudeBar](https://github.com/tddworks/ClaudeBar) by [@hanrw](https://github.com/hanrw) and its [contributors](https://github.com/tddworks/ClaudeBar#contributors). Everything outside the Touch Bar is their work. Bugs in those areas are best reported upstream; anything about the Touch Bar belongs [here](https://github.com/siyanliu1/TouchQuota/issues).
 
 ## License
 
