@@ -303,6 +303,9 @@ struct AlibabaConfigCard: View {
 
     private func testAlibabaConnection() async {
         isTestingAlibaba = true
+        // Every exit clears it, including the early return below — otherwise
+        // the button sticks on "Testing connection..." for the life of the view.
+        defer { isTestingAlibaba = false }
         alibabaTestResult = nil
 
         // Save current inputs
@@ -340,6 +343,5 @@ struct AlibabaConfigCard: View {
             alibabaTestResult = "Success: Connection verified"
         }
 
-        isTestingAlibaba = false
     }
 }

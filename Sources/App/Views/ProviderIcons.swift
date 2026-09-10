@@ -87,24 +87,13 @@ struct ProviderIconView: View {
         return nil
     }
 
+    /// The symbol shown when a provider has no artwork asset.
+    ///
+    /// Delegates rather than keeping a second switch: this was a hand-copied
+    /// subset of `symbolIcon` and had drifted, which is why `alibaba` and `kiro`
+    /// — both of whose assets do not exist — rendered a question mark.
     private func providerSymbol(for providerId: String) -> String {
-        switch providerId {
-        case "claude": return "brain.head.profile"
-        case "codex": return "chevron.left.forwardslash.chevron.right"
-        case "gemini": return "sparkles"
-        case "zai": return "z.square.fill"
-        case "copilot": return "chevron.left.forwardslash.chevron.right"
-        case "minimax": return "waveform"
-        case "deepseek": return "d.square.fill"
-        case "opencode-go": return "square.stack.3d.up.fill"
-        case "omp": return "terminal.fill"
-        case "grok": return "line.diagonal"
-        case "vercel-gateway": return "triangle.fill"
-        // Matches ProviderVisualIdentityLookup's symbol for alibaba. There is no
-        // AlibabaIcon asset, so this fallback is what actually renders.
-        case "alibaba": return "a.square.fill"
-        default: return "questionmark"
-        }
+        ProviderVisualIdentityLookup.symbolIcon(for: providerId)
     }
 }
 

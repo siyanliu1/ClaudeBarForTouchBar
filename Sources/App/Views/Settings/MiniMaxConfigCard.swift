@@ -288,6 +288,9 @@ struct MiniMaxConfigCard: View {
 
     private func testMiniMaxConnection() async {
         isTestingMiniMax = true
+        // Every exit clears it, including the early return below — otherwise
+        // the button sticks on "Testing connection..." for the life of the view.
+        defer { isTestingMiniMax = false }
         miniMaxTestResult = nil
 
         settings.minimax.setMinimaxAuthEnvVar(miniMaxAuthEnvVarInput)
@@ -322,6 +325,5 @@ struct MiniMaxConfigCard: View {
             miniMaxTestResult = "Success: Connection verified"
         }
 
-        isTestingMiniMax = false
     }
 }

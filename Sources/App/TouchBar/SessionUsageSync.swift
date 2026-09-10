@@ -24,6 +24,10 @@ final class SessionUsageSync {
     /// that follows it would both start from the same offset and the later
     /// answer could be the older one.
     private var reading: Set<String> = []
+    /// Bumped for a session every time a hook says something happened. A read
+    /// carries the value it started with, so an answer that predates the hook
+    /// can be told apart from one that reflects it.
+    private var generation: [String: Int] = [:]
 
     private var timer: Timer?
     /// Whether the board asked for polling. Kept apart from the timer because
@@ -49,6 +53,12 @@ final class SessionUsageSync {
         // would ever release a finished session's read position.
         forgetSessionsNotIn(Set(sessionMonitor.sessions.map(\.id)))
         defer { updatePolling() }
+        // The hook may just have blocked this session. A read already in flight
+        // was started before that, so its answer must not be allowed to stand
+        // as the post-block baseline — the record that caused the block is not
+        // in it, and the next tick would then read that record as fresh work
+        // and clear "Needs you" while Claude is still waiting.
+        generation[sessionId, default: 0] += 1
         guard let session = sessionMonitor.sessions.first(where: { $0.id == sessionId }) else { return }
         read(session)
     }
@@ -91,6 +101,7 @@ final class SessionUsageSync {
     /// so the map does not grow for the life of the app.
     func forgetSessionsNotIn(_ ids: Set<String>) {
         progress = progress.filter { ids.contains($0.key) }
+        generation = generation.filter { ids.contains($0.key) }
     }
 
     // MARK: - Private
@@ -100,6 +111,10 @@ final class SessionUsageSync {
             read(session)
         }
         forgetSessionsNotIn(Set(sessionMonitor.sessions.map(\.id)))
+        // A session pruned by the expiry timer takes no read with it, so nothing
+        // else would ever re-evaluate this and the timer would tick for the rest
+        // of the process.
+        updatePolling()
     }
 
     private func read(_ session: ClaudeSession) {
@@ -108,6 +123,7 @@ final class SessionUsageSync {
         let sessionId = session.id
         let previous = progress[sessionId]
         let reader = reader
+        let startedAtGeneration = generation[sessionId, default: 0]
         reading.insert(sessionId)
 
         Task.detached(priority: .utility) {
@@ -122,16 +138,30 @@ final class SessionUsageSync {
             }
 
             await MainActor.run { [weak self] in
-                self?.finish(sessionId: sessionId, result: result)
+                self?.finish(sessionId: sessionId, startedAtGeneration: startedAtGeneration, result: result)
             }
         }
     }
 
-    private func finish(sessionId: String, result: (offset: Int, usage: SessionUsage?)?) {
+    private func finish(
+        sessionId: String,
+        startedAtGeneration: Int,
+        result: (offset: Int, usage: SessionUsage?)?
+    ) {
         reading.remove(sessionId)
         // A reading can resume a blocked session, which is the moment polling
         // stops being needed — and the tick is what took that reading.
         defer { updatePolling() }
+
+        // A hook landed while this read was in flight. Throw the answer away
+        // and take a fresh one, which will reflect whatever that hook did.
+        guard startedAtGeneration == generation[sessionId, default: 0] else {
+            if let session = sessionMonitor.sessions.first(where: { $0.id == sessionId }) {
+                read(session)
+            }
+            return
+        }
+
         guard let result else { return }
         progress[sessionId] = result
         guard let usage = result.usage else { return }

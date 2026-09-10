@@ -582,6 +582,9 @@ struct CopilotConfigCard: View {
 
     private func testCopilotConnection() async {
         isTestingCopilot = true
+        // Every exit clears it, including the early return below — otherwise
+        // the button sticks on "Testing connection..." for the life of the view.
+        defer { isTestingCopilot = false }
         copilotTestResult = nil
 
         settings.copilot.setCopilotAuthEnvVar(copilotAuthEnvVarInput)
@@ -617,6 +620,5 @@ struct CopilotConfigCard: View {
         }
 
         copilotApiReturnedEmpty = settings.copilot.copilotApiReturnedEmpty()
-        isTestingCopilot = false
     }
 }
