@@ -171,7 +171,7 @@ public final class JSONSettingsRepository:
     }
 
     public func backgroundSyncEnabled() -> Bool {
-        store.read(key: "app.backgroundSyncEnabled") ?? false
+        store.read(key: "app.backgroundSyncEnabled") ?? true
     }
 
     public func setBackgroundSyncEnabled(_ enabled: Bool) {
@@ -179,9 +179,9 @@ public final class JSONSettingsRepository:
     }
 
     public func backgroundSyncInterval() -> TimeInterval {
-        // Default 10 min (issue #204): a power-conscious cadence for the
-        // background menu-bar refresh when no interval has been persisted yet.
-        store.read(key: "app.backgroundSyncInterval") ?? 600
+        // Default 1 min: the Touch Bar board is glanced at constantly, so it
+        // polls at the energy floor unless the user picks something slower.
+        store.read(key: "app.backgroundSyncInterval") ?? 60
     }
 
     public func setBackgroundSyncInterval(_ interval: TimeInterval) {

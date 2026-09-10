@@ -237,20 +237,20 @@ struct JSONSettingsRepositoryAppTests {
     // MARK: - Background Sync
 
     @Test
-    func `backgroundSyncEnabled defaults to false`() {
+    func `backgroundSyncEnabled defaults to true`() {
         let (repo, dir) = makeRepository()
         defer { cleanup(dir) }
 
-        #expect(repo.backgroundSyncEnabled() == false)
+        #expect(repo.backgroundSyncEnabled() == true)
     }
 
     @Test
-    func `backgroundSyncInterval defaults to 600`() {
+    func `backgroundSyncInterval defaults to 60`() {
         let (repo, dir) = makeRepository()
         defer { cleanup(dir) }
 
-        // Power-conscious 10-minute default for background refresh (issue #204).
-        #expect(repo.backgroundSyncInterval() == 600)
+        // The Touch Bar board is glanced at constantly, so it polls at the 1-minute floor.
+        #expect(repo.backgroundSyncInterval() == 60)
     }
 
     @Test
