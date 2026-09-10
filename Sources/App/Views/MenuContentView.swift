@@ -130,16 +130,21 @@ struct MenuContentView: View {
             onHookSettingsChanged?(enabled)
         }
         .task {
+            // Show header and tabs immediately. This has to come first: the
+            // permission request below awaits a system dialog, and everything
+            // gated on `animateIn` — the header, the provider pills, the whole
+            // action bar — stays invisible until it returns. On the first open
+            // after install that left the user looking at a single card with
+            // nothing to click.
+            withAnimation(.easeOut(duration: 0.6)) {
+                animateIn = true
+            }
+
             // Request alert permission once (after app run loop is active)
             if !hasRequestedNotificationPermission {
                 hasRequestedNotificationPermission = true
                 let granted = await quotaAlerter.requestPermission()
                 AppLog.notifications.info("Alert permission request result: \(granted ? "granted" : "denied")")
-            }
-
-            // Show header and tabs immediately
-            withAnimation(.easeOut(duration: 0.6)) {
-                animateIn = true
             }
             // Then fetch data in background
             if settings.overviewModeEnabled {
@@ -777,7 +782,11 @@ struct MenuContentView: View {
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 16)
         }
-        .frame(height: 140)
+        .padding(.vertical, 8)
+        // Minimum, not fixed: a recovery hint that names a command is longer
+        // than one line, and a fixed height clipped it mid-command — losing the
+        // only part of the message the user can act on.
+        .frame(minHeight: 140)
         .frame(maxWidth: .infinity)
         .glassCard()
     }
@@ -903,39 +912,20 @@ struct MenuContentView: View {
 
     // MARK: - Actions
 
-    /// Refresh all enabled providers concurrently
+    /// Refresh all enabled providers concurrently.
+    ///
+    /// Goes through the monitor rather than probing providers directly: quota
+    /// notifications are posted from `QuotaMonitor.handleSnapshotUpdate`, which
+    /// only the monitor's own refresh paths reach. Probing here directly meant
+    /// no alert ever fired from the dropdown — and since background sync is off
+    /// by default, that was every refresh a default install ever ran.
     private func refreshAllEnabled() async {
-        await withTaskGroup(of: Void.self) { group in
-            // The `isSyncing` guard reads main-actor provider state, so evaluate
-            // it here on the main actor (this closure inherits the caller's
-            // isolation). Each child task then awaits `refresh()`, whose heavy
-            // probe work still suspends off-main, keeping the refreshes concurrent.
-            for provider in monitor.enabledProviders where !provider.isSyncing {
-                group.addTask {
-                    do {
-                        try await provider.refresh()
-                    } catch {
-                        // Provider stores error in lastError
-                    }
-                }
-            }
-        }
+        await monitor.refreshAllInteractively()
     }
 
-    /// Refresh a specific provider by ID
+    /// Refresh a specific provider by ID. See ``refreshAllEnabled()``.
     private func refresh(providerId: String) async {
-        guard let provider = monitor.provider(for: providerId) else {
-            return
-        }
-
-        // Provider.isSyncing is observable - prevents duplicate refreshes
-        guard !provider.isSyncing else { return }
-
-        do {
-            try await provider.refresh()
-        } catch {
-            // Provider stores error in lastError
-        }
+        await monitor.refreshInteractively(providerId: providerId)
     }
 
     /// Fetch guest passes and show the share view

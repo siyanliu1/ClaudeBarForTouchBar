@@ -47,6 +47,10 @@ final class StatusItemLabelDriver {
     private var blinkTimer: Timer?
     private var blinkPhase = true
 
+    /// Retires sessions that went quiet without saying goodbye. See
+    /// `startSessionExpiryLifecycle`.
+    private var sessionExpiryTimer: Timer?
+
     /// The image currently owned by this driver, and the content it encodes.
     /// Used both to skip redundant redraws (repainting an intact image can
     /// itself flicker) and to recognize external wipes via KVO.
@@ -193,6 +197,11 @@ final class StatusItemLabelDriver {
     /// we have nothing to fall back to, so the normal "no data yet" icon shows.
     private func lastKnownLabel(whenFreshIsMissing freshLabel: MenuBarLabel?) -> MenuBarLabel? {
         guard freshLabel == nil, let previous = lastContent?.label else { return nil }
+        // A readout the user switched off is not a gap to bridge. Without this
+        // the last number stayed frozen in the menu bar until relaunch, because
+        // "no readout configured" and "configured but momentarily missing" both
+        // arrive here as a nil label.
+        guard settings.menuBarPercentageEnabled || settings.menuBarDurationEnabled else { return nil }
         let providerHasSnapshot = monitor.enabledProviders.contains {
             $0.id == settings.menuBarPercentageProviderId && $0.snapshot != nil
         }
@@ -419,6 +428,10 @@ final class StatusItemLabelDriver {
     /// countdown advances within half a second of the true minute boundary.
     private static let blinkInterval: TimeInterval = 0.5
 
+    /// A minute is far finer than the 12-hour idle timeout it feeds; it just
+    /// keeps the glyph from lingering for a whole extra tick after a session dies.
+    private static let sessionExpiryInterval: TimeInterval = 60
+
     /// Starts watching whether a duration is shown at all, running the
     /// countdown tick only while one is. Sibling of `startMonitoringLifecycle`.
     ///
@@ -437,6 +450,29 @@ final class StatusItemLabelDriver {
         )
         blinkSync = sync
         sync.start()
+    }
+
+    /// Retires sessions that stopped without a `SessionEnd`.
+    ///
+    /// `SessionMonitor.pruneStale` is documented "call it on a timer", and the
+    /// only thing that did was the Touch Bar driver — which ticks only while
+    /// the board is open, and the board is off by default. Its other caller,
+    /// `processEvent`, needs a new event, which is exactly what a session that
+    /// died with its terminal window cannot send. So the menu-bar glyph and the
+    /// popover card kept showing a session that no longer existed, with no
+    /// control anywhere that cleared it.
+    ///
+    /// Sibling of `startMonitoringLifecycle`; call once at app startup.
+    func startSessionExpiryLifecycle() {
+        guard sessionExpiryTimer == nil else { return }
+        let timer = Timer(timeInterval: Self.sessionExpiryInterval, repeats: true) { [weak self] _ in
+            MainActor.assumeIsolated {
+                guard let self else { return }
+                self.sessionMonitor.pruneStale()
+            }
+        }
+        RunLoop.main.add(timer, forMode: .common)
+        sessionExpiryTimer = timer
     }
 
     private func startBlinkTimer() {

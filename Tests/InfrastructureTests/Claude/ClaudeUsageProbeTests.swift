@@ -376,7 +376,14 @@ struct ClaudeUsageProbeTests {
             AccountInfo(email: "user@example.com", billingType: "apple_subscription")
         )
 
-        let probe = ClaudeUsageProbe(cliExecutor: mockExecutor, accountInfoResolver: resolver)
+        // No credentials anywhere, so the mismatch stays genuinely ambiguous —
+        // otherwise this test would read whatever the test machine happens to
+        // have logged in.
+        let probe = ClaudeUsageProbe(
+            cliExecutor: mockExecutor,
+            accountInfoResolver: resolver,
+            credentialLoader: Self.emptyCredentialLoader()
+        )
 
         // When / Then
         await #expect(throws: ProbeError.executionFailed(ClaudeUsageProbe.subscriptionMisreadAsApiBilling)) {
@@ -451,4 +458,85 @@ struct ClaudeUsageProbeTests {
         let exclusions = ClaudeUsageProbe.envExclusions
         #expect(exclusions == ["CLAUDE_CODE_OAUTH_TOKEN"])
     }
+
+    // MARK: - Expired Session
+
+    /// A loader that finds nothing, so tests never depend on the credentials of
+    /// whatever machine they run on.
+    static func emptyCredentialLoader() -> ClaudeCredentialLoader {
+        ClaudeCredentialLoader(
+            homeDirectory: FileManager.default.temporaryDirectory
+                .appendingPathComponent("claude-probe-no-credentials-\(UUID().uuidString)").path,
+            useKeychain: false,
+            environment: [:]
+        )
+    }
+
+    private static func expiredCredentialLoader() throws -> ClaudeCredentialLoader {
+        let home = FileManager.default.temporaryDirectory
+            .appendingPathComponent("claude-probe-expired-\(UUID().uuidString)", isDirectory: true)
+        let claudeDir = home.appendingPathComponent(".claude", isDirectory: true)
+        try FileManager.default.createDirectory(at: claudeDir, withIntermediateDirectories: true)
+
+        let anHourAgo = Date().addingTimeInterval(-3600).timeIntervalSince1970 * 1000
+        let aDayAgo = Date().addingTimeInterval(-86_400).timeIntervalSince1970 * 1000
+        let credentials: [String: Any] = [
+            "claudeAiOauth": [
+                "accessToken": "dead-token",
+                "refreshToken": "dead-refresh-token",
+                "expiresAt": anHourAgo,
+                "refreshTokenExpiresAt": aDayAgo,
+                "subscriptionType": "max",
+            ] as [String: Any]
+        ]
+        let data = try JSONSerialization.data(withJSONObject: credentials)
+        try data.write(to: claudeDir.appendingPathComponent(".credentials.json"))
+
+        return ClaudeCredentialLoader(homeDirectory: home.path, useKeychain: false, environment: [:])
+    }
+
+    /// The whole point of the fix: when the CLI shows the API-billing panel for
+    /// an account the config calls a subscription, the deciding question is
+    /// whether our stored login is still alive. If it is not, say so — the old
+    /// message blamed the CLI for "not seeing the subscription" and left the
+    /// user with nothing to act on.
+    @Test
+    func `probe reports an expired session rather than a misread subscription`() async throws {
+        // Given - the API billing cost panel, and a subscription-billed account
+        let mockExecutor = MockCLIExecutor()
+        let usageOutput = """
+            Settings  Status   Config   Usage   Stats
+            Opus 5 (1M context) · API Usage Billing · someone's Organization
+            Session
+            Total cost:            $0.0000
+            Total duration (API):  0s
+            Usage:                 0 input, 0 output, 0 cache read, 0 cache write
+        """
+
+        given(mockExecutor).execute(
+            binary: .any,
+            args: .any,
+            input: .any,
+            timeout: .any,
+            workingDirectory: .any,
+            autoResponses: .any
+        ).willReturn(CLIResult(output: usageOutput, exitCode: 0))
+
+        let resolver = MockAccountInfoResolving()
+        given(resolver).resolve().willReturn(
+            AccountInfo(email: "user@example.com", billingType: "stripe_subscription")
+        )
+
+        let probe = ClaudeUsageProbe(
+            cliExecutor: mockExecutor,
+            accountInfoResolver: resolver,
+            credentialLoader: try Self.expiredCredentialLoader()
+        )
+
+        // When / Then
+        await #expect(throws: ProbeError.sessionExpired()) {
+            try await probe.probe()
+        }
+    }
+
 }

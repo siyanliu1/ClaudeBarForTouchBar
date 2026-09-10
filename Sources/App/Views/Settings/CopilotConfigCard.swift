@@ -582,6 +582,9 @@ struct CopilotConfigCard: View {
 
     private func testCopilotConnection() async {
         isTestingCopilot = true
+        // Every exit clears it, including the early return below — otherwise
+        // the button sticks on "Testing connection..." for the life of the view.
+        defer { isTestingCopilot = false }
         copilotTestResult = nil
 
         settings.copilot.setCopilotAuthEnvVar(copilotAuthEnvVarInput)
@@ -592,17 +595,30 @@ struct CopilotConfigCard: View {
         }
 
         AppLog.credentials.info("Testing Copilot connection via provider refresh")
-        await monitor.refresh(providerId: "copilot")
+        // refreshInteractively, not refresh: the latter skips a provider that
+        // reports itself unavailable, so with no credentials configured the
+        // probe never ran, lastError stayed nil — and this reported success.
+        // A skipped probe leaves the previous run's snapshot in place, which
+        // the checks below cannot tell apart from these credentials working.
+        guard await monitor.refreshInteractively(providerId: "copilot") else {
+            copilotTestResult = "Not tested: another refresh is already running — try again in a moment"
+            return
+        }
 
-        if let error = monitor.provider(for: "copilot")?.lastError {
+        let provider = monitor.provider(for: "copilot")
+        if let error = provider?.lastError {
             AppLog.credentials.error("Copilot connection test failed: \(error.localizedDescription)")
             copilotTestResult = "Failed: \(error.localizedDescription)"
+        } else if provider?.snapshot == nil {
+            // No error and no data means the probe did not actually run.
+            // Success has to mean usage came back, not merely "nothing threw".
+            AppLog.credentials.error("Copilot connection test returned no usage data")
+            copilotTestResult = "Failed: no usage data returned — check the settings above"
         } else {
             AppLog.credentials.info("Copilot connection test succeeded")
             copilotTestResult = "Success: Connection verified"
         }
 
         copilotApiReturnedEmpty = settings.copilot.copilotApiReturnedEmpty()
-        isTestingCopilot = false
     }
 }

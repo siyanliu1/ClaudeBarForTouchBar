@@ -572,9 +572,11 @@ struct SessionMonitorTests {
         #expect(monitor.sessions.isEmpty)
     }
     @Test
-    func `a blocked session goes back to work when its transcript grows`() {
+    func `a blocked session goes back to work when its transcript keeps growing`() {
         // Granting a permission fires no hook, so the transcript is the only
-        // evidence the user answered.
+        // evidence the user answered. Growth is measured from the first reading
+        // taken after the block, not from the one before it — see the test
+        // below for why.
         let monitor = SessionMonitor()
         monitor.processEvent(makeEvent(sessionId: "s1", eventName: .sessionStart))
         monitor.updateUsage(sessionId: "s1", usage: usage(contextTokens: 40_000))
@@ -587,10 +589,64 @@ struct SessionMonitorTests {
         ))
         #expect(monitor.activeSession?.phase == .awaitingInput)
 
+        // The reading that lands right after the block carries the tool-use
+        // record that caused it; it sets the bar.
         monitor.updateUsage(sessionId: "s1", usage: usage(contextTokens: 41_000))
+        // Claude actually resumes and writes more.
+        monitor.updateUsage(sessionId: "s1", usage: usage(contextTokens: 42_000))
 
         #expect(monitor.activeSession?.phase == .active)
         #expect(monitor.activeSession?.pendingPrompt == nil)
+    }
+
+    @Test
+    func `the first reading after a block does not cancel it`() {
+        // Claude Code appends the assistant tool-use record before it asks for
+        // permission, so the very next transcript read is always larger than
+        // the last stored one. Treating that as "back to work" wiped the
+        // "Needs you" state on the Touch Bar board and in the notch within a
+        // fraction of a second of it appearing, while Claude sat waiting.
+        let monitor = SessionMonitor()
+        monitor.processEvent(makeEvent(sessionId: "s1", eventName: .sessionStart))
+        monitor.updateUsage(sessionId: "s1", usage: usage(contextTokens: 40_000))
+        monitor.processEvent(SessionEvent(
+            sessionId: "s1",
+            eventName: .notification,
+            cwd: "/tmp",
+            message: "Claude needs your permission to use Bash",
+            notificationType: "permission_prompt"
+        ))
+
+        // The read the hook loop kicks off for this very event.
+        monitor.updateUsage(sessionId: "s1", usage: usage(contextTokens: 41_000))
+
+        #expect(monitor.activeSession?.phase == .awaitingInput)
+        #expect(monitor.activeSession?.pendingPrompt == "Claude needs your permission to use Bash")
+    }
+
+    @Test
+    func `a fresh block re-arms the baseline`() {
+        // Two permission prompts in one turn: the second must block just as the
+        // first did, rather than inheriting a bar the earlier one already set.
+        let monitor = SessionMonitor()
+        monitor.processEvent(makeEvent(sessionId: "s1", eventName: .sessionStart))
+        let permission = SessionEvent(
+            sessionId: "s1",
+            eventName: .notification,
+            cwd: "/tmp",
+            message: "Claude needs your permission to use Bash",
+            notificationType: "permission_prompt"
+        )
+
+        monitor.processEvent(permission)
+        monitor.updateUsage(sessionId: "s1", usage: usage(contextTokens: 41_000))
+        monitor.updateUsage(sessionId: "s1", usage: usage(contextTokens: 42_000))
+        #expect(monitor.activeSession?.phase == .active)
+
+        monitor.processEvent(permission)
+        monitor.updateUsage(sessionId: "s1", usage: usage(contextTokens: 43_000))
+
+        #expect(monitor.activeSession?.phase == .awaitingInput)
     }
 
     @Test

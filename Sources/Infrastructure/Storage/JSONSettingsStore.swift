@@ -30,14 +30,44 @@ public final class JSONSettingsStore: @unchecked Sendable {
 
     /// Writes a value for the given key path (dot-notation supported).
     /// Pass nil to remove the key. Creates the file and parent directories if needed.
+    ///
+    /// Refuses to write when the file exists but is not valid JSON — see
+    /// ``isUnreadable``. Writing in that state would replace every setting the
+    /// user has with just the one key being set.
     public func write(value: Any?, key: String) {
         lock.lock()
         defer { lock.unlock() }
 
-        var dict = readFileUnsafe()
+        var dict: [String: Any]
+        switch loadUnsafe() {
+        case .missing:
+            dict = [:]
+        case .parsed(let existing):
+            dict = existing
+        case .unreadable:
+            AppLog.ui.error(
+                "Refusing to write settings: \(fileURL.path) exists but is not valid JSON. "
+                + "Fix or delete the file to resume saving settings."
+            )
+            return
+        }
+
         let parts = key.split(separator: ".").map(String.init)
         resolveWrite(dict: &dict, keyPath: parts, value: value)
         writeFile(dict)
+    }
+
+    /// Whether the settings file exists but cannot be parsed.
+    ///
+    /// A hand-edit that leaves a brace unbalanced is enough. Reads fall back to
+    /// their defaults in that state, which makes the app look freshly
+    /// installed; without this distinction the next write would then persist
+    /// that empty state over the real file.
+    public var isUnreadable: Bool {
+        lock.lock()
+        defer { lock.unlock() }
+        if case .unreadable = loadUnsafe() { return true }
+        return false
     }
 
     /// Returns the full settings dictionary (for migration/debugging).
@@ -60,13 +90,28 @@ public final class JSONSettingsStore: @unchecked Sendable {
         return readFileUnsafe()
     }
 
+    /// What the settings file currently holds. `unreadable` is deliberately
+    /// distinct from `missing`: the first must never be overwritten, the second
+    /// is the ordinary first-run case.
+    private enum LoadResult {
+        case missing
+        case parsed([String: Any])
+        case unreadable
+    }
+
+    /// Must be called while holding the lock.
+    private func loadUnsafe() -> LoadResult {
+        guard let data = try? Data(contentsOf: fileURL) else { return .missing }
+        guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+            return .unreadable
+        }
+        return .parsed(json)
+    }
+
     /// Must be called while holding the lock.
     private func readFileUnsafe() -> [String: Any] {
-        guard let data = try? Data(contentsOf: fileURL),
-              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
-            return [:]
-        }
-        return json
+        if case .parsed(let dict) = loadUnsafe() { return dict }
+        return [:]
     }
 
     /// Must be called while holding the lock.

@@ -19,6 +19,11 @@ public final class HookHTTPServer: @unchecked Sendable {
     /// The actual port the server is listening on
     public private(set) var actualPort: UInt16 = 0
 
+    /// Hook payloads are a few KB at most; this only bounds a runaway sender.
+    private static let maxRequestBytes = 1 << 20
+
+    private static let continueResponse = Data("HTTP/1.1 100 Continue\r\n\r\n".utf8)
+
     public init(defaultPort: UInt16 = HookConstants.defaultPort) {
         self.defaultPort = defaultPort
     }
@@ -34,14 +39,21 @@ public final class HookHTTPServer: @unchecked Sendable {
             }
         }
 
-        // Try default port first, fall back to auto-assign
-        let port: NWEndpoint.Port
-        if let preferredPort = NWEndpoint.Port(rawValue: defaultPort) {
-            port = preferredPort
-        } else {
-            port = .any
-        }
+        let preferred = NWEndpoint.Port(rawValue: defaultPort) ?? .any
+        try startListener(on: preferred, canFallBack: preferred != .any)
 
+        return stream
+    }
+
+    /// Brings a listener up on `port`.
+    ///
+    /// When the port is already taken — a second copy of ClaudeBar, a leftover
+    /// listener, or a toggle off-then-on that raced the release — retry once on
+    /// an OS-assigned port instead of dying silently. The hook script reads the
+    /// real port back out of the discovery file, so any port works. Previously
+    /// a failed bind only logged: the toggle stayed on, the pane still said
+    /// "installed", and no session ever appeared again.
+    private func startListener(on port: NWEndpoint.Port, canFallBack: Bool) throws {
         let parameters = NWParameters.tcp
         parameters.requiredLocalEndpoint = NWEndpoint.hostPort(host: .ipv4(.loopback), port: port)
 
@@ -60,7 +72,21 @@ public final class HookHTTPServer: @unchecked Sendable {
                 }
             case .failed(let error):
                 AppLog.hooks.error("Hook HTTP server failed: \(error.localizedDescription)")
-                self.continuation?.finish()
+                listener.cancel()
+                if self.listener === listener {
+                    self.listener = nil
+                }
+                guard canFallBack else {
+                    self.continuation?.finish()
+                    return
+                }
+                AppLog.hooks.warning("Port \(port.rawValue) unavailable; retrying on an OS-assigned port")
+                do {
+                    try self.startListener(on: .any, canFallBack: false)
+                } catch {
+                    AppLog.hooks.error("Hook HTTP server could not start: \(error.localizedDescription)")
+                    self.continuation?.finish()
+                }
             default:
                 break
             }
@@ -73,8 +99,6 @@ public final class HookHTTPServer: @unchecked Sendable {
 
         listener.start(queue: queue)
         queue.async { self.listener = listener }
-
-        return stream
     }
 
     /// Stops the HTTP server and cleans up.
@@ -94,32 +118,73 @@ public final class HookHTTPServer: @unchecked Sendable {
     /// Runs on `queue` (via newConnectionHandler).
     private func handleConnection(_ connection: NWConnection) {
         connection.start(queue: queue)
+        receive(on: connection, into: HTTPRequestBuffer())
+    }
 
-        // Read up to 64KB (more than enough for hook payloads)
-        // Callback runs on `queue` (connection started on queue).
-        connection.receive(minimumIncompleteLength: 1, maximumLength: 65536) { [weak self] data, _, isComplete, error in
-            defer {
-                // Send minimal HTTP 200 response and close
-                let response = "HTTP/1.1 200 OK\r\nContent-Length: 0\r\nConnection: close\r\n\r\n"
-                connection.send(
-                    content: response.data(using: .utf8),
-                    contentContext: .finalMessage,
-                    isComplete: true,
-                    completion: .contentProcessed { _ in
-                        connection.cancel()
-                    }
-                )
-            }
-
-            guard let data, error == nil else {
-                if let error {
-                    AppLog.hooks.debug("Connection error: \(error.localizedDescription)")
-                }
+    /// Reads until the whole request has arrived, then answers and closes.
+    ///
+    /// A single `receive` is not enough: curl holds a body over roughly 1 KB
+    /// behind `Expect: 100-continue`, so the first read returns headers alone —
+    /// and those already end in `\r\n\r\n`, so they parse as a complete
+    /// request with an empty body. Every `Stop` event carrying a long assistant
+    /// message was lost that way.
+    ///
+    /// Runs on `queue` (the connection was started on it).
+    private func receive(on connection: NWConnection, into buffer: HTTPRequestBuffer) {
+        connection.receive(minimumIncompleteLength: 1, maximumLength: Self.maxRequestBytes) { [weak self] data, _, isComplete, error in
+            guard let self else {
+                connection.cancel()
                 return
             }
 
-            self?.processHTTPRequest(data)
+            if let error {
+                AppLog.hooks.debug("Connection error: \(error.localizedDescription)")
+                self.respondAndClose(connection)
+                return
+            }
+
+            var buffer = buffer
+            if let data, !data.isEmpty {
+                buffer.append(data)
+            }
+
+            // Unblock a client that is waiting for permission to send its body.
+            if buffer.needsContinue {
+                buffer.didSendContinue = true
+                connection.send(
+                    content: Self.continueResponse,
+                    completion: .contentProcessed { _ in }
+                )
+            }
+
+            if buffer.isComplete {
+                self.processHTTPRequest(buffer.data)
+                self.respondAndClose(connection)
+                return
+            }
+
+            // The peer finished without completing the request, or is sending
+            // more than any hook event could plausibly be.
+            if isComplete || buffer.data.count >= Self.maxRequestBytes {
+                AppLog.hooks.warning("Incomplete hook request (\(buffer.data.count) bytes); dropping")
+                self.respondAndClose(connection)
+                return
+            }
+
+            self.receive(on: connection, into: buffer)
         }
+    }
+
+    private func respondAndClose(_ connection: NWConnection) {
+        let response = "HTTP/1.1 200 OK\r\nContent-Length: 0\r\nConnection: close\r\n\r\n"
+        connection.send(
+            content: Data(response.utf8),
+            contentContext: .finalMessage,
+            isComplete: true,
+            completion: .contentProcessed { _ in
+                connection.cancel()
+            }
+        )
     }
 
     /// Runs on `queue` (called from connection.receive callback).

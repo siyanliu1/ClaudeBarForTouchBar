@@ -79,6 +79,56 @@ public final class QuotaMonitor {
         }
     }
 
+    /// Refreshes every enabled provider the way the dropdown does.
+    ///
+    /// Two differences from ``refreshAll()``, both deliberate: a provider that
+    /// reports itself unavailable is still probed, so it records why it failed
+    /// instead of being skipped silently, and one already mid-probe is left
+    /// alone rather than probed twice.
+    ///
+    /// The dropdown must come through here rather than calling
+    /// `provider.refresh()` itself. Alerting lives in ``handleSnapshotUpdate``,
+    /// so a refresh that bypasses the monitor posts no quota notification and
+    /// never advances the change-detection baseline — and with background sync
+    /// off by default, the dropdown is the only refresh most users ever run.
+    public func refreshAllInteractively() async {
+        await withTaskGroup(of: Void.self) { group in
+            for provider in providers.enabled where !provider.isSyncing {
+                group.addTask {
+                    await self.probeAndRecord(provider)
+                }
+            }
+        }
+    }
+
+    /// Refreshes one provider the way the dropdown does. See
+    /// ``refreshAllInteractively()``.
+    ///
+    /// Returns whether the probe actually ran. "Save & Test Connection" reads
+    /// `lastError` and `snapshot` afterwards to decide what to tell the user,
+    /// and a provider already mid-probe is skipped here — leaving the *previous*
+    /// run's clean snapshot in place, which reads exactly like the new
+    /// credentials passing. Callers that report a verdict must check this.
+    @discardableResult
+    public func refreshInteractively(providerId: String) async -> Bool {
+        guard let provider = providers.provider(id: providerId), !provider.isSyncing else {
+            return false
+        }
+        await probeAndRecord(provider)
+        return true
+    }
+
+    /// Probes unconditionally and feeds the result through the same alerting
+    /// path a background tick uses.
+    private func probeAndRecord(_ provider: any AIProvider) async {
+        do {
+            let snapshot = try await provider.refresh(.interactive)
+            await handleSnapshotUpdate(provider: provider, snapshot: snapshot)
+        } catch {
+            // Provider stores the error in lastError.
+        }
+    }
+
     /// Refreshes a single provider.
     /// `kind` defaults to `.interactive`; the background monitoring loop passes
     /// `.background` so providers can skip non-glanceable work (issue #204).

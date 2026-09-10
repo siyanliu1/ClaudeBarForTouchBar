@@ -80,12 +80,11 @@ public final class SessionMonitor {
 
         // Granting a permission fires no hook — PreToolUse is deliberately not
         // registered — so a session that was blocked would stay blocked in the
-        // UI until the turn ended. The transcript growing is the answer: more
-        // context than last time means Claude is working again.
-        if sessions[index].phase == .awaitingInput,
-           usage.contextTokens > (sessions[index].usage?.contextTokens ?? 0) {
-            sessions[index].resume()
-        }
+        // UI until the turn ended. Transcript growth is the answer, but it has
+        // to be measured from the first reading taken *after* the block: the
+        // record that caused it is already on disk by then, so comparing
+        // against the stored usage resumed the session immediately.
+        sessions[index].noteContextWhileAwaitingInput(usage.contextTokens)
 
         sessions[index].updateUsage(usage)
     }

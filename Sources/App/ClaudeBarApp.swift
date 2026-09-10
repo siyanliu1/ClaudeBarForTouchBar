@@ -164,6 +164,7 @@ struct ClaudeBarApp: App {
         )
         statusItemDriver.startMonitoringLifecycle()
         statusItemDriver.startAttachLifecycle()
+        statusItemDriver.startSessionExpiryLifecycle()
 
         notchDriver = NotchWindowDriver(
             monitor: monitor,

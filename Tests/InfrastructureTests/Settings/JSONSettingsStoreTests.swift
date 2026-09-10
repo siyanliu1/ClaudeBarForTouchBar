@@ -212,14 +212,22 @@ struct JSONSettingsStoreTests {
     }
 
     @Test
-    func `write to malformed file replaces with valid JSON`() throws {
+    func `write leaves a malformed file alone rather than replacing it`() throws {
+        // This used to assert the opposite — that the write went through and
+        // replaced the file. That is the data loss: reads of a file we cannot
+        // parse fall back to defaults, so the write persisted an empty
+        // dictionary plus the one key being set, over settings the user still
+        // had. A file we cannot read is the one file we must not overwrite.
         let (store, dir) = try makeStore(initialJSON: "broken")
         defer { cleanup(dir) }
 
         store.write(value: "fixed", key: "status")
 
         let result: String? = store.read(key: "status")
-        #expect(result == "fixed")
+        #expect(result == nil)
+
+        let onDisk = try String(contentsOf: dir.appendingPathComponent("settings.json"), encoding: .utf8)
+        #expect(onDisk == "broken")
     }
 
     @Test
@@ -264,5 +272,58 @@ struct JSONSettingsStoreTests {
 
         let all = store.readAll()
         #expect(all.isEmpty)
+    }
+
+    // MARK: - Corrupt File Protection
+
+    @Test
+    func `write refuses to replace a settings file that is not valid JSON`() throws {
+        // Given a hand-edited file left unbalanced. Not a trailing comma:
+        // JSONSerialization on macOS 26 accepts those.
+        let corrupt = """
+        {
+            "app": { "themeMode": "cli", "showDailyUsageCards": true
+        }
+        """
+        let (store, dir) = try makeStore(initialJSON: corrupt)
+        defer { cleanup(dir) }
+        let fileURL = dir.appendingPathComponent("settings.json")
+        let before = try String(contentsOf: fileURL, encoding: .utf8)
+
+        // When any pane saves any setting
+        store.write(value: "dark", key: "app.themeMode")
+
+        // Then the user's file is byte-for-byte what it was, rather than being
+        // replaced by a one-key dictionary built from an empty read
+        let after = try String(contentsOf: fileURL, encoding: .utf8)
+        #expect(after == before)
+        #expect(after.contains("showDailyUsageCards"))
+    }
+
+    @Test
+    func `isUnreadable distinguishes a corrupt file from a missing one`() throws {
+        let (missing, missingDir) = try makeStore()
+        defer { cleanup(missingDir) }
+        #expect(missing.isUnreadable == false)
+
+        let (corrupt, corruptDir) = try makeStore(initialJSON: "{ not json")
+        defer { cleanup(corruptDir) }
+        #expect(corrupt.isUnreadable == true)
+
+        let (valid, validDir) = try makeStore(initialJSON: #"{ "app": { "themeMode": "cli" } }"#)
+        defer { cleanup(validDir) }
+        #expect(valid.isUnreadable == false)
+    }
+
+    @Test
+    func `write still creates the file when none exists`() throws {
+        // The corrupt-file guard must not break ordinary first-run saving.
+        let (store, dir) = try makeStore()
+        defer { cleanup(dir) }
+
+        store.write(value: "cli", key: "app.themeMode")
+
+        let result: String? = store.read(key: "app.themeMode")
+        #expect(result == "cli")
     }
 }

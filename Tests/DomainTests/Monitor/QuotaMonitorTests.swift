@@ -1377,6 +1377,85 @@ struct QuotaMonitorTests {
     // MARK: - Quota Alerter
 
     @Test
+    func `the dropdown's refresh alerts on degradation`() async {
+        // The dropdown used to call provider.refresh() directly, which skips
+        // handleSnapshotUpdate — the only place alert() is reached. With
+        // background sync off by default, that was every refresh a default
+        // install ever ran, so no quota alert could ever fire.
+        let mockAlerter = MockQuotaAlerter()
+        given(mockAlerter).alert(providerId: .any, previousStatus: .any, currentStatus: .any).willReturn(())
+
+        let probe = MockUsageProbe()
+        given(probe).isAvailable().willReturn(true)
+        given(probe).probe().willReturn(UsageSnapshot(
+            providerId: "claude",
+            quotas: [UsageQuota(percentRemaining: 15, quotaType: .session, providerId: "claude")],
+            capturedAt: Date()
+        ))
+        let settings = makeSettingsRepository()
+        let claude = ClaudeProvider(probe: probe, settingsRepository: settings)
+        let monitor = makeMonitor(providers: AIProviders(providers: [claude]), alerter: mockAlerter)
+
+        // When — exactly what the Refresh button and the dropdown's .task do
+        await monitor.refreshInteractively(providerId: "claude")
+
+        // Then
+        verify(mockAlerter).alert(
+            providerId: .value("claude"),
+            previousStatus: .value(.healthy),
+            currentStatus: .value(.critical)
+        ).called(1)
+    }
+
+    @Test
+    func `refreshing all from the dropdown alerts on degradation`() async {
+        let mockAlerter = MockQuotaAlerter()
+        given(mockAlerter).alert(providerId: .any, previousStatus: .any, currentStatus: .any).willReturn(())
+
+        let probe = MockUsageProbe()
+        given(probe).isAvailable().willReturn(true)
+        given(probe).probe().willReturn(UsageSnapshot(
+            providerId: "claude",
+            quotas: [UsageQuota(percentRemaining: 5, quotaType: .session, providerId: "claude")],
+            capturedAt: Date()
+        ))
+        let settings = makeSettingsRepository()
+        let claude = ClaudeProvider(probe: probe, settingsRepository: settings)
+        let monitor = makeMonitor(providers: AIProviders(providers: [claude]), alerter: mockAlerter)
+
+        // When — overview mode refreshes every enabled provider
+        await monitor.refreshAllInteractively()
+
+        // Then
+        verify(mockAlerter).alert(
+            providerId: .value("claude"),
+            previousStatus: .value(.healthy),
+            currentStatus: .any
+        ).called(1)
+    }
+
+    @Test
+    func `the dropdown probes a provider that reports itself unavailable`() async {
+        // Deliberately unlike refreshAll(): a user asking for a refresh should
+        // get a real attempt, so the provider records why it failed rather than
+        // being skipped without a trace.
+        let settings = makeSettingsRepository()
+        let probe = MockUsageProbe()
+        given(probe).isAvailable().willReturn(false)
+        given(probe).probe().willReturn(UsageSnapshot(
+            providerId: "claude",
+            quotas: [UsageQuota(percentRemaining: 80, quotaType: .session, providerId: "claude")],
+            capturedAt: Date()
+        ))
+        let claude = ClaudeProvider(probe: probe, settingsRepository: settings)
+        let monitor = makeMonitor(providers: AIProviders(providers: [claude]))
+
+        await monitor.refreshInteractively(providerId: "claude")
+
+        #expect(claude.snapshot != nil)
+    }
+
+    @Test
     func `alerter is called on status change`() async {
         // Given
         let mockAlerter = MockQuotaAlerter()
@@ -1532,5 +1611,45 @@ struct QuotaMonitorTests {
         // Then - provider is enabled, selection unchanged
         #expect(codex.isEnabled == true)
         #expect(monitor.selectedProviderId == "claude")
+    }
+
+    /// The dropdown and the background loop both set `isSyncing`, and
+    /// "Save & Test Connection" reads `lastError`/`snapshot` afterwards. A
+    /// silently skipped probe leaves the previous run's clean snapshot standing,
+    /// which reads exactly like the new credentials passing — so the skip has to
+    /// be reportable.
+    @Test
+    func `an interactive refresh says so when it skipped a provider mid-probe`() async {
+        let provider = AlwaysSyncingProvider()
+        let monitor = makeMonitor(providers: AIProviders(providers: [provider]))
+
+        let didProbe = await monitor.refreshInteractively(providerId: "claude")
+
+        #expect(didProbe == false)
+        #expect(provider.refreshCallCount == 0)
+    }
+
+}
+
+
+/// A provider that is permanently mid-probe. `AIProvider` is not `@Mockable`
+/// (only `UsageProbe` is), and `isSyncing` is only ever true inside a real
+/// refresh, so holding that state still needs a stand-in.
+private final class AlwaysSyncingProvider: AIProvider, @unchecked Sendable {
+    let id = "claude"
+    let name = "Claude"
+    let cliCommand = "claude"
+    let dashboardURL: URL? = nil
+    var isEnabled = true
+    let isSyncing = true
+    let snapshot: UsageSnapshot? = nil
+    let lastError: Error? = nil
+    nonisolated(unsafe) private(set) var refreshCallCount = 0
+
+    func isAvailable() async -> Bool { true }
+
+    func refresh() async throws -> UsageSnapshot {
+        refreshCallCount += 1
+        return UsageSnapshot(providerId: id, quotas: [], capturedAt: Date())
     }
 }

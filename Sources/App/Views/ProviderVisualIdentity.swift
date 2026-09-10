@@ -613,6 +613,11 @@ enum ProviderVisualIdentityLookup {
             return scheme == .dark
                 ? Color(white: 0.92)
                 : Color(white: 0.08)
+        case "alibaba":
+            // Alibaba Cloud orange
+            return scheme == .dark
+                ? Color(red: 1.0, green: 0.45, blue: 0.10)
+                : Color(red: 0.90, green: 0.38, blue: 0.05)
         default:
             return BaseTheme.purpleVibrant
         }
@@ -696,6 +701,10 @@ enum ProviderVisualIdentityLookup {
             secondaryColor = scheme == .dark
                 ? Color(white: 0.55)
                 : Color(white: 0.45)
+        case "alibaba":
+            secondaryColor = scheme == .dark
+                ? Color(red: 1.0, green: 0.68, blue: 0.20)
+                : Color(red: 0.92, green: 0.58, blue: 0.12)
         default:
             return LinearGradient(
                 colors: [BaseTheme.coralAccent, BaseTheme.pinkHot],
@@ -732,6 +741,7 @@ enum ProviderVisualIdentityLookup {
         case "omp": return "OmpIcon"
         case "grok": return "GrokIcon"
         case "vercel-gateway": return "VercelIcon"
+        case "alibaba": return "AlibabaIcon"
         default: return "QuestionIcon"
         }
     }
@@ -757,6 +767,7 @@ enum ProviderVisualIdentityLookup {
         case "omp": return "Oh My Pi"
         case "grok": return "Grok"
         case "vercel-gateway": return "Vercel Gateway"
+        case "alibaba": return "Alibaba"
         default: return providerId.capitalized
         }
     }
@@ -782,6 +793,7 @@ enum ProviderVisualIdentityLookup {
         case "omp": return "terminal.fill"
         case "grok": return "line.diagonal"
         case "vercel-gateway": return "triangle.fill"
+        case "alibaba": return "a.square.fill"
         default: return "questionmark.circle.fill"
         }
     }

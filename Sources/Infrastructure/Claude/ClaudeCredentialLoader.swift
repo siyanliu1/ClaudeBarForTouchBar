@@ -6,19 +6,35 @@ public struct ClaudeOAuthCredentials: Sendable, Equatable {
     public var accessToken: String
     public var refreshToken: String?
     public var expiresAt: Double?  // Milliseconds since epoch
+    /// When the refresh token itself dies. Past this, no refresh can succeed and
+    /// the user has to log in again — which is a different thing to tell them
+    /// than "your token needs refreshing".
+    public var refreshTokenExpiresAt: Double?  // Milliseconds since epoch
     public var subscriptionType: String?
 
     public init(
         accessToken: String,
         refreshToken: String? = nil,
         expiresAt: Double? = nil,
+        refreshTokenExpiresAt: Double? = nil,
         subscriptionType: String? = nil
     ) {
         self.accessToken = accessToken
         self.refreshToken = refreshToken
         self.expiresAt = expiresAt
+        self.refreshTokenExpiresAt = refreshTokenExpiresAt
         self.subscriptionType = subscriptionType
     }
+}
+
+extension ClaudeCredentialLoader {
+    /// A loader that finds nothing, anywhere. The parsing seam defaults to this
+    /// so a test never reads the credentials of whatever machine runs it.
+    public static let findsNothing = ClaudeCredentialLoader(
+        homeDirectory: "/var/empty",
+        useKeychain: false,
+        environment: [:]
+    )
 }
 
 /// Source of loaded credentials.
@@ -140,14 +156,11 @@ public struct ClaudeCredentialLoader: Sendable {
     /// This ensures quota monitoring uses full-scope credentials when available,
     /// while still falling back to the env var token if nothing else exists.
     public func loadCredentials() -> ClaudeCredentialResult? {
-        // Try file first (full-scope OAuth from `claude login`)
-        if let fileResult = loadFromFile() {
-            return fileResult
-        }
-
-        // Keychain (if enabled)
-        if useKeychain, let keychainResult = loadFromKeychain() {
-            return keychainResult
+        // Only a session there is something to authenticate with. Callers use
+        // this to decide "is Claude configured at all", so a blanked session
+        // must keep reading as nil here.
+        if let stored = loadStoredSession(), !stored.oauth.accessToken.isEmpty {
+            return stored
         }
 
         // Fallback to environment variable (setup-token, inference-only scope)
@@ -158,6 +171,30 @@ public struct ClaudeCredentialLoader: Sendable {
         return nil
     }
 
+    /// The stored session exactly as it sits on disk — including the shape a
+    /// dead one leaves behind, where the Keychain item survives with both
+    /// tokens blanked and only the timestamps and plan left.
+    ///
+    /// ``loadCredentials()`` deliberately hides that, because there is nothing
+    /// there to authenticate with. This answers the different question of what
+    /// the machine *says* about the session, which is how "you are logged out"
+    /// can be told apart from "you never set Claude up" — two states that need
+    /// very different things said to the user.
+    public func loadStoredSession() -> ClaudeCredentialResult? {
+        let fileResult = loadFromFile()
+        if let fileResult, !fileResult.oauth.accessToken.isEmpty {
+            return fileResult
+        }
+
+        let keychainResult = useKeychain ? loadFromKeychain() : nil
+        if let keychainResult, !keychainResult.oauth.accessToken.isEmpty {
+            return keychainResult
+        }
+
+        // Neither is usable; report whichever actually exists.
+        return fileResult ?? keychainResult
+    }
+
     /// Checks if the token needs to be refreshed (expired or within 5 minutes of expiry).
     public func needsRefresh(_ oauth: ClaudeOAuthCredentials) -> Bool {
         guard let expiresAt = oauth.expiresAt else {
@@ -165,6 +202,34 @@ public struct ClaudeCredentialLoader: Sendable {
         }
         let nowMs = Date().timeIntervalSince1970 * 1000
         return nowMs + Self.refreshBufferMs >= expiresAt
+    }
+
+    /// Whether the session is past the point a refresh could rescue it, so the
+    /// only way back is `claude login`.
+    ///
+    /// Deliberately answers false whenever it cannot *prove* otherwise: a token
+    /// with no recorded expiry (what `claude setup-token` writes) is unknown,
+    /// not dead, and reporting it as expired would send users to log in over a
+    /// session that works. ``needsRefresh(_:)`` is the opposite — it errs toward
+    /// refreshing — because being wrong there costs a round trip, not a lie.
+    public func isBeyondRefresh(_ oauth: ClaudeOAuthCredentials) -> Bool {
+        let nowMs = Date().timeIntervalSince1970 * 1000
+
+        // Both tokens blanked is the state `claude` leaves behind when a session
+        // dies. No timestamp needed to know there is nothing left to refresh.
+        if oauth.accessToken.isEmpty, oauth.refreshToken?.isEmpty ?? true {
+            return true
+        }
+
+        // The access token has to be provably dead before anything else matters.
+        guard let expiresAt = oauth.expiresAt, nowMs >= expiresAt else { return false }
+
+        // Nothing to refresh with.
+        guard let refreshToken = oauth.refreshToken, !refreshToken.isEmpty else { return true }
+
+        // A refresh token with no stated expiry is assumed good.
+        guard let refreshExpiresAt = oauth.refreshTokenExpiresAt else { return false }
+        return nowMs >= refreshExpiresAt
     }
 
     /// Saves updated credentials back to the original source.
@@ -239,13 +304,16 @@ public struct ClaudeCredentialLoader: Sendable {
                 return nil
             }
 
+            // A blank token is kept rather than dropped: it is what a logged-out
+            // session looks like on disk, and `loadCredentials` filters it out
+            // for callers who need something to authenticate with.
             let accessToken = rawAccessToken.trimmingCharacters(in: .whitespacesAndNewlines)
-            guard !accessToken.isEmpty else { return nil }
 
             let oauth = ClaudeOAuthCredentials(
                 accessToken: accessToken,
                 refreshToken: oauthDict["refreshToken"] as? String,
                 expiresAt: oauthDict["expiresAt"] as? Double,
+                refreshTokenExpiresAt: oauthDict["refreshTokenExpiresAt"] as? Double,
                 subscriptionType: oauthDict["subscriptionType"] as? String
             )
 
@@ -320,13 +388,16 @@ public struct ClaudeCredentialLoader: Sendable {
                 return nil
             }
 
+            // A blank token is kept rather than dropped: it is what a logged-out
+            // session looks like on disk, and `loadCredentials` filters it out
+            // for callers who need something to authenticate with.
             let accessToken = rawAccessToken.trimmingCharacters(in: .whitespacesAndNewlines)
-            guard !accessToken.isEmpty else { return nil }
 
             let oauth = ClaudeOAuthCredentials(
                 accessToken: accessToken,
                 refreshToken: oauthDict["refreshToken"] as? String,
                 expiresAt: oauthDict["expiresAt"] as? Double,
+                refreshTokenExpiresAt: oauthDict["refreshTokenExpiresAt"] as? Double,
                 subscriptionType: oauthDict["subscriptionType"] as? String
             )
 

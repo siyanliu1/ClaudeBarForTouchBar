@@ -1,4 +1,5 @@
 import SwiftUI
+import Observation
 import Infrastructure
 
 // MARK: - Theme Registry
@@ -17,7 +18,13 @@ import Infrastructure
 /// // Get all available themes
 /// let allThemes = ThemeRegistry.shared.allThemes
 /// ```
+///
+/// Observable so SwiftUI re-reads `allThemes` after an import or a delete.
+/// Without it the Appearance grid kept rendering the list it first saw: an
+/// imported theme never appeared, and a deleted one's tile stayed on screen
+/// until something unrelated happened to invalidate the pane.
 @MainActor
+@Observable
 public final class ThemeRegistry {
     /// Shared singleton instance
     public static let shared = ThemeRegistry()
@@ -124,6 +131,12 @@ public final class ThemeRegistry {
         themes.removeValue(forKey: id)
         themeOrder.removeAll { $0 == id }
         try? importedThemeStore.delete(name: displayName)
+
+        // Deleting the theme that is currently selected would otherwise leave
+        // app.themeMode pointing at an id nothing resolves any more.
+        if AppSettings.shared.themeMode == id {
+            AppSettings.shared.themeMode = SystemTheme().id
+        }
     }
 
     /// Whether a theme is imported (vs built-in).

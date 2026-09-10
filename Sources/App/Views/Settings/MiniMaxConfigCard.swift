@@ -288,6 +288,9 @@ struct MiniMaxConfigCard: View {
 
     private func testMiniMaxConnection() async {
         isTestingMiniMax = true
+        // Every exit clears it, including the early return below — otherwise
+        // the button sticks on "Testing connection..." for the life of the view.
+        defer { isTestingMiniMax = false }
         miniMaxTestResult = nil
 
         settings.minimax.setMinimaxAuthEnvVar(miniMaxAuthEnvVarInput)
@@ -298,16 +301,29 @@ struct MiniMaxConfigCard: View {
         }
 
         AppLog.credentials.info("Testing MiniMax connection via provider refresh")
-        await monitor.refresh(providerId: "minimax")
+        // refreshInteractively, not refresh: the latter skips a provider that
+        // reports itself unavailable, so with no credentials configured the
+        // probe never ran, lastError stayed nil — and this reported success.
+        // A skipped probe leaves the previous run's snapshot in place, which
+        // the checks below cannot tell apart from these credentials working.
+        guard await monitor.refreshInteractively(providerId: "minimax") else {
+            miniMaxTestResult = "Not tested: another refresh is already running — try again in a moment"
+            return
+        }
 
-        if let error = monitor.provider(for: "minimax")?.lastError {
+        let provider = monitor.provider(for: "minimax")
+        if let error = provider?.lastError {
             AppLog.credentials.error("MiniMax connection test failed: \(error.localizedDescription)")
             miniMaxTestResult = "Failed: \(error.localizedDescription)"
+        } else if provider?.snapshot == nil {
+            // No error and no data means the probe did not actually run.
+            // Success has to mean usage came back, not merely "nothing threw".
+            AppLog.credentials.error("MiniMax connection test returned no usage data")
+            miniMaxTestResult = "Failed: no usage data returned — check the settings above"
         } else {
             AppLog.credentials.info("MiniMax connection test succeeded")
             miniMaxTestResult = "Success: Connection verified"
         }
 
-        isTestingMiniMax = false
     }
 }
